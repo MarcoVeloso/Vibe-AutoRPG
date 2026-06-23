@@ -61,11 +61,12 @@ body {
     color: #aaa;
     letter-spacing: 2px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    text-align: center;
 }
 
 .hp-container {
     background: #0a0a0a;
-    border: 2px solid #777;
+    border: 2px solid #dd3333;
     height: 16px;
     position: relative;
     overflow: hidden;
@@ -76,7 +77,7 @@ body {
 
 .hp-fill {
     height: 100%;
-    background: linear-gradient(90deg, #666, #aaa);
+    background: linear-gradient(90deg, #dd3333, #ff6666);
     transition: width 0.3s ease;
     position: absolute;
     left: 0;
@@ -187,11 +188,11 @@ body {
 }
 
 .hp-bar .bar-container {
-    border-color: #888;
+    border-color: #33dd33;
 }
 
 .ap-bar .bar-container {
-    border-color: #888;
+    border-color: #3333dd;
 }
 
 .bar-fill {
@@ -203,11 +204,11 @@ body {
 }
 
 .hero-hp {
-    background: linear-gradient(90deg, #666, #aaa);
+    background: linear-gradient(90deg, #33aa33, #66ff66);
 }
 
 .hero-ap {
-    background: linear-gradient(90deg, #555, #999);
+    background: linear-gradient(90deg, #3333aa, #6666ff);
 }
 
 .bar-text {
@@ -373,15 +374,12 @@ body {
 
 @keyframes slash-strike {
     0% { 
-        opacity: 0;
-        transform: rotate(-45deg) scale(0.5);
-    }
-    50% {
         opacity: 1;
+        transform: rotate(90deg) scale(0.8);
     }
     100% { 
         opacity: 0;
-        transform: rotate(45deg) scale(1.5);
+        transform: rotate(180deg) scale(1.2);
     }
 }
 

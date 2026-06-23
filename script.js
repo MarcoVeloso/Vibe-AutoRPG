@@ -158,16 +158,16 @@ function heroAction(actionNumber) {
     // Processa a ação
     switch(actionNumber_int) {
         case 1:
-            executeAttack(1, 'Golpe 1', 1);
+            executeAttack(1, 'Ataque Normal', 1);
             break;
         case 2:
-            executeAttack(2, 'Ataque 2', 1);
+            executeAttack(2, 'Ataque Forte', 1);
             break;
         case 3:
-            executeAttack(3, 'Estocada 3', 1);
+            executeAttack(3, 'Golpe Pesado', 1);
             break;
         case 4:
-            executeAttack(4, 'Explosão 4', 1);
+            executeAttack(4, 'Golpe Final', 1);
             break;
         case 5:
             executeCure();
@@ -221,7 +221,7 @@ function executeDefense() {
     game.heroAP = Math.max(0, game.heroAP - 1);
     game.defenseActive = true;
     
-    addLog('Defesa ativada');
+    addLog('Concentração ativada');
 }
 
 // ===== ENEMY TURN =====
