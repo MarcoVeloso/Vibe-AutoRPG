@@ -335,8 +335,8 @@ function playHeroSlashAnimation() {
     slash.textContent = '🗡️';
     
     const rect = enemyVisual.getBoundingClientRect();
-    slash.style.left = (rect.left + rect.width / 2 - 30) + 'px';
-    slash.style.top = (rect.top + rect.height / 2 - 30) + 'px';
+    slash.style.left = (rect.left + rect.width / 2 - 37) + 'px';
+    slash.style.top = (rect.top + rect.height / 2 - 37) + 'px';
     
     document.body.appendChild(slash);
     
