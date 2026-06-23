@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe AutoRPG - Batalha em Turnos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Topo: Barra e Inimigo -->
+        <div class="enemy-section">
+            <div class="enemy-hp-bar">
+                <div class="hp-label">INIMIGO</div>
+                <div class="hp-container">
+                    <div class="hp-fill enemy-hp" style="width: 100%"></div>
+                    <div class="hp-text"><span id="enemy-hp">5</span>/5</div>
+                </div>
+            </div>
+            <div class="enemy-visual">
+                <div class="enemy-sprite">🧟</div>
+            </div>
+        </div>
+
+        <!-- Meio: Herói e Barras -->
+        <div class="hero-section">
+            <div class="hero-visual">
+                <div class="hero-sprite">🥷</div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-bar hp-bar">
+                    <div class="stat-label">HP</div>
+                    <div class="bar-container">
+                        <div class="bar-fill hero-hp" style="width: 100%"></div>
+                        <div class="bar-text"><span id="hero-hp">10</span>/10</div>
+                    </div>
+                </div>
+
+                <div class="stat-bar ap-bar">
+                    <div class="stat-label">AP</div>
+                    <div class="bar-container">
+                        <div class="bar-fill hero-ap" style="width: 100%"></div>
+                        <div class="bar-text"><span id="hero-ap">5</span>/5</div>
+                    </div>
+                </div>
+
+                <div class="turn-indicator">
+                    <span id="turn-text">TURNO: INIMIGO</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log de Ações -->
+        <div class="action-log">
+            <div id="log-content" class="log-text">--- INÍCIO ---</div>
+        </div>
+
+        <!-- Botões de Ação (2x3) -->
+        <div class="actions-grid">
+            <button class="action-btn" data-action="1">
+                <div class="btn-title">Golpe 1</div>
+                <div class="btn-cost">-1 AP</div>
+            </button>
+            <button class="action-btn" data-action="2">
+                <div class="btn-title">Ataque 2</div>
+                <div class="btn-cost">-2 AP</div>
+            </button>
+            <button class="action-btn" data-action="3">
+                <div class="btn-title">Estocada 3</div>
+                <div class="btn-cost">-3 AP</div>
+            </button>
+            <button class="action-btn" data-action="4">
+                <div class="btn-title">Explosão 4</div>
+                <div class="btn-cost">-4 AP</div>
+            </button>
+            <button class="action-btn" data-action="5">
+                <div class="btn-title">Cura 5</div>
+                <div class="btn-cost">-1 AP</div>
+            </button>
+            <button class="action-btn" data-action="6">
+                <div class="btn-title">Defesa 6</div>
+                <div class="btn-cost">-1 AP</div>
+            </button>
+        </div>
+
+        <!-- Painel Inferior -->
+        <div class="bottom-panel">
+            <button id="restart-btn" class="restart-btn">REINICIAR</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
