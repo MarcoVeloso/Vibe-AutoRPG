@@ -16,7 +16,6 @@ const game = {
 const heroHPElem = document.getElementById('hero-hp');
 const heroAPElem = document.getElementById('hero-ap');
 const enemyHPElem = document.getElementById('enemy-hp');
-const turnIndicator = document.getElementById('turn-text');
 const logContent = document.getElementById('log-content');
 const heroHPBar = document.querySelector('.hero-hp');
 const heroAPBar = document.querySelector('.hero-ap');
@@ -68,36 +67,7 @@ function updateUI() {
     heroAPBar.style.width = heroAPPercent + '%';
     enemyHPBar.style.width = enemyHPPercent + '%';
     
-    updateTurnIndicator();
     updateActionButtons();
-}
-
-function updateTurnIndicator() {
-    if (game.isGameOver) {
-        if (game.gameResult === 'victory') {
-            turnIndicator.textContent = 'VITÓRIA!';
-            turnIndicator.style.color = '#00ff00';
-            turnIndicator.style.borderColor = '#00ff00';
-            turnIndicator.parentElement.style.background = 'rgba(0, 255, 0, 0.2)';
-        } else {
-            turnIndicator.textContent = 'DERROTA!';
-            turnIndicator.style.color = '#ff4444';
-            turnIndicator.style.borderColor = '#ff4444';
-            turnIndicator.parentElement.style.background = 'rgba(255, 68, 68, 0.2)';
-        }
-    } else if (game.isHeroTurn) {
-        turnIndicator.textContent = 'SEU TURNO';
-        turnIndicator.classList.remove('enemy-turn');
-        turnIndicator.style.color = '#00ff00';
-        turnIndicator.style.borderColor = '#00ff00';
-        turnIndicator.parentElement.style.background = 'rgba(0, 255, 0, 0.1)';
-    } else {
-        turnIndicator.textContent = 'TURNO: INIMIGO';
-        turnIndicator.classList.add('enemy-turn');
-        turnIndicator.style.color = '#ff4444';
-        turnIndicator.style.borderColor = '#ff4444';
-        turnIndicator.parentElement.style.background = 'rgba(255, 68, 68, 0.1)';
-    }
 }
 
 function updateActionButtons() {
