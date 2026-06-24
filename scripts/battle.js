@@ -1,25 +1,9 @@
 // ===== GAME STATE =====
-const game = {
-    heroPV: 10,
-    heroMaxPV: 10,
-    heroPA: 0,
-    heroMaxPA: 5,
-    enemyPV: 5,
-    enemyMaxPV: 5,
-    isHeroTurn: false,
-    isGameOver: false,
-    defenseActive: false,
-    gameResult: null
-};
+const game = {};
 
-const skills = {
-    1: { name: 'Ataque Normal', effect: -1, apChange: 0 },
-    2: { name: 'Ataque Forte', effect: -2, apChange: -1 },
-    3: { name: 'Golpe Pesado', effect: -3, apChange: -2 },
-    4: { name: 'Golpe Final', effect: -4, apChange: -3 },
-    5: { name: 'Cura', effect: 2, apChange: -1 },
-    6: { name: 'Concentração', effect: 0, apChange: +1 }
-};
+const heroData = HERO_DATA;
+const enemyData = ENEMIES_DATA[0];
+const skills = SKILLS_DATA;
 
 // ===== DOM ELEMENTS =====
 const heroPVElem = document.getElementById('hero-hp');
@@ -35,11 +19,12 @@ const enemyVisual = document.querySelector('.enemy-visual');
 
 // ===== INICIALIZAÇÃO =====
 function initGame() {
-    game.heroPV = 10;
-    game.heroMaxPV = 10;
-    game.heroPA = 0;
-    game.enemyPV = 5;
-    game.enemyMaxPV = 5;
+    game.heroPV = heroData.initialPV;
+    game.heroMaxPV = heroData.maxPV;
+    game.heroPA = heroData.initialPA;
+    game.heroMaxPA = heroData.maxPA;
+    game.enemyPV = enemyData.initialPV;
+    game.enemyMaxPV = enemyData.maxPV;
     game.isHeroTurn = false;
     game.isGameOver = false;
     game.defenseActive = false;
