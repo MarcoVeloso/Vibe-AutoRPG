@@ -2,7 +2,7 @@
 const game = {
     heroHP: 10,
     heroMaxHP: 10,
-    heroAP: 5,
+    heroAP: 0,
     heroMaxAP: 5,
     enemyHP: 5,
     enemyMaxHP: 5,
@@ -10,6 +10,15 @@ const game = {
     isGameOver: false,
     defenseActive: false,
     gameResult: null
+};
+
+const skills = {
+    1: { name: 'Ataque Normal', effect: -1, apChange: 0 },
+    2: { name: 'Ataque Forte', effect: -2, apChange: -1 },
+    3: { name: 'Golpe Pesado', effect: -3, apChange: -2 },
+    4: { name: 'Golpe Final', effect: -4, apChange: -3 },
+    5: { name: 'Cura', effect: 2, apChange: -1 },
+    6: { name: 'Concentração', effect: 0, apChange: +1 }
 };
 
 // ===== DOM ELEMENTS =====
@@ -28,7 +37,7 @@ const enemyVisual = document.querySelector('.enemy-visual');
 function initGame() {
     game.heroHP = 10;
     game.heroMaxHP = 10;
-    game.heroAP = 5;
+    game.heroAP = 0;
     game.enemyHP = 5;
     game.enemyMaxHP = 5;
     game.isHeroTurn = false;
@@ -72,11 +81,14 @@ function updateUI() {
 
 function updateActionButtons() {
     actionButtons.forEach(btn => {
-        btn.disabled = !game.isHeroTurn || game.isGameOver;
+        const skill = skills[parseInt(btn.dataset.action, 10)];
+        const cost = skill.apChange < 0 ? Math.abs(skill.apChange) : 0;
+        btn.disabled = !game.isHeroTurn || game.isGameOver || (skill.apChange < 0 && game.heroAP < cost);
     });
 }
 
 // ===== LOG SYSTEM =====
+
 function addLog(message) {
     const timestamp = new Date().toLocaleTimeString('pt-BR', { 
         hour: '2-digit', 
@@ -107,44 +119,41 @@ function calculateDamage(actionNumber) {
 function heroAction(actionNumber) {
     if (!game.isHeroTurn || game.isGameOver) return;
     
-    const actionNumber_int = parseInt(actionNumber);
-    const apCost = actionNumber_int; // Todos custam AP igual ao número (exceto cura e defesa que custam 1)
+    const actionNumber_int = parseInt(actionNumber, 10);
+    const skill = skills[actionNumber_int];
+    if (!skill) return;
     
-    if (actionNumber_int === 5 || actionNumber_int === 6) {
-        if (game.heroAP < 1) {
-            addLog('Sem AP!');
-            return;
-        }
-    } else {
-        if (game.heroAP < apCost) {
-            addLog('Sem AP!');
-            return;
-        }
+    if (skill.apChange < 0 && game.heroAP < Math.abs(skill.apChange)) {
+        addLog('Sem AP!');
+        return;
     }
     
     // Reseta defesa de turno anterior
     game.defenseActive = false;
     
-    // Processa a ação
-    switch(actionNumber_int) {
-        case 1:
-            executeAttack(1, 'Ataque Normal', 1);
-            break;
-        case 2:
-            executeAttack(2, 'Ataque Forte', 1);
-            break;
-        case 3:
-            executeAttack(3, 'Golpe Pesado', 1);
-            break;
-        case 4:
-            executeAttack(4, 'Golpe Final', 1);
-            break;
-        case 5:
-            executeCure();
-            break;
-        case 6:
-            executeDefense();
-            break;
+    game.heroAP = Math.min(game.heroMaxAP, Math.max(0, game.heroAP + skill.apChange));
+    
+    if (skill.effect < 0) {
+        const damage = Math.abs(skill.effect);
+        game.enemyHP = Math.max(0, game.enemyHP - damage);
+        addLog(`${skill.name} -${damage}HP`);
+        playHeroSlashAnimation();
+        showFloatingText(damage, enemyVisual, true);
+        playEnemyHitAnimation();
+
+        if (game.enemyHP <= 0) {
+            setTimeout(() => {
+                endGame('victory');
+            }, 300);
+        }
+    } else if (skill.effect > 0) {
+        const healAmount = Math.min(skill.effect, game.heroMaxHP - game.heroHP);
+        game.heroHP = Math.min(game.heroMaxHP, game.heroHP + skill.effect);
+        addLog(`${skill.name} +${healAmount}HP`);
+        showFloatingText(healAmount, document.querySelector('.hero-visual'), false);
+    } else {
+        const apLabel = skill.apChange > 0 ? `+${skill.apChange} AP` : `${skill.apChange} AP`;
+        addLog(`${skill.name} ${apLabel}`);
     }
     
     game.isHeroTurn = false;
@@ -156,42 +165,6 @@ function heroAction(actionNumber) {
             enemyTurn();
         }
     }, 1000);
-}
-
-function executeAttack(damage, actionName, apCost) {
-    game.heroAP = Math.max(0, game.heroAP - damage); // Gasta AP = dano
-    game.enemyHP = Math.max(0, game.enemyHP - damage);
-    
-    addLog(`${actionName} -${damage}HP`);
-    
-    // Animação de slash sobre o inimigo
-    playHeroSlashAnimation();
-    
-    showFloatingText(damage, enemyVisual, true);
-    playEnemyHitAnimation();
-    
-    if (game.enemyHP <= 0) {
-        setTimeout(() => {
-            endGame('victory');
-        }, 300);
-    }
-}
-
-function executeCure() {
-    game.heroAP = Math.max(0, game.heroAP - 1);
-    const healAmount = 5;
-    const actualHeal = Math.min(healAmount, game.heroMaxHP - game.heroHP);
-    game.heroHP = Math.min(game.heroMaxHP, game.heroHP + healAmount);
-    
-    addLog(`Cura +${actualHeal}HP`);
-    showFloatingText(actualHeal, document.querySelector('.hero-visual'), false);
-}
-
-function executeDefense() {
-    game.heroAP = Math.max(0, game.heroAP - 1);
-    game.defenseActive = true;
-    
-    addLog('Concentração ativada');
 }
 
 // ===== ENEMY TURN =====
@@ -234,7 +207,6 @@ function enemyTurn() {
             endGame('defeat');
         }, 300);
     } else {
-        game.heroAP = game.heroMaxAP; // Reseta AP do herói
         game.isHeroTurn = true;
         updateUI();
     }

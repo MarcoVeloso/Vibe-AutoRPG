@@ -323,12 +323,20 @@ body {
 }
 .btn-effect {
     font-size: 18px;
-    color: #dd3333;
     text-align: center;
+}
+.btn-effect.negative {
+    color: #ff5555;
+}
+.btn-effect.positive {
+    color: #55ff55;
+}
+.btn-effect.neutral {
+    color: #fff;
 }
 .btn-cost {
     font-size: 18px;
-    color: #3333dd;
+    color: #55aaff;
     text-align: center;
 }
 
