@@ -1,11 +1,11 @@
 // ===== GAME STATE =====
 const game = {
-    heroHP: 10,
-    heroMaxHP: 10,
-    heroAP: 0,
-    heroMaxAP: 5,
-    enemyHP: 5,
-    enemyMaxHP: 5,
+    heroPV: 10,
+    heroMaxPV: 10,
+    heroPA: 0,
+    heroMaxPA: 5,
+    enemyPV: 5,
+    enemyMaxPV: 5,
     isHeroTurn: false,
     isGameOver: false,
     defenseActive: false,
@@ -22,24 +22,24 @@ const skills = {
 };
 
 // ===== DOM ELEMENTS =====
-const heroHPElem = document.getElementById('hero-hp');
-const heroAPElem = document.getElementById('hero-ap');
-const enemyHPElem = document.getElementById('enemy-hp');
+const heroPVElem = document.getElementById('hero-hp');
+const heroPAElem = document.getElementById('hero-ap');
+const enemyPVElem = document.getElementById('enemy-hp');
 const logContent = document.getElementById('log-content');
-const heroHPBar = document.querySelector('.hero-hp');
-const heroAPBar = document.querySelector('.hero-ap');
-const enemyHPBar = document.querySelector('.enemy-hp');
+const heroPVBar = document.querySelector('.hero-hp');
+const heroPABar = document.querySelector('.hero-ap');
+const enemyPVBar = document.querySelector('.enemy-hp');
 const actionButtons = document.querySelectorAll('.action-btn');
 const restartBtn = document.getElementById('restart-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
 
 // ===== INICIALIZAÇÃO =====
 function initGame() {
-    game.heroHP = 10;
-    game.heroMaxHP = 10;
-    game.heroAP = 0;
-    game.enemyHP = 5;
-    game.enemyMaxHP = 5;
+    game.heroPV = 10;
+    game.heroMaxPV = 10;
+    game.heroPA = 0;
+    game.enemyPV = 5;
+    game.enemyMaxPV = 5;
     game.isHeroTurn = false;
     game.isGameOver = false;
     game.defenseActive = false;
@@ -64,17 +64,17 @@ function initGame() {
 
 // ===== UPDATE UI =====
 function updateUI() {
-    heroHPElem.textContent = game.heroHP;
-    heroAPElem.textContent = game.heroAP;
-    enemyHPElem.textContent = game.enemyHP;
+    heroPVElem.textContent = game.heroPV;
+    heroPAElem.textContent = game.heroPA;
+    enemyPVElem.textContent = game.enemyPV;
     
-    const heroHPPercent = (game.heroHP / game.heroMaxHP) * 100;
-    const heroAPPercent = (game.heroAP / game.heroMaxAP) * 100;
-    const enemyHPPercent = (game.enemyHP / game.enemyMaxHP) * 100;
+    const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
+    const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
+    const enemyPVPercent = (game.enemyPV / game.enemyMaxPV) * 100;
     
-    heroHPBar.style.width = heroHPPercent + '%';
-    heroAPBar.style.width = heroAPPercent + '%';
-    enemyHPBar.style.width = enemyHPPercent + '%';
+    heroPVBar.style.width = heroPVPercent + '%';
+    heroPABar.style.width = heroPAPercent + '%';
+    enemyPVBar.style.width = enemyPVPercent + '%';
     
     updateActionButtons();
 }
@@ -83,7 +83,7 @@ function updateActionButtons() {
     actionButtons.forEach(btn => {
         const skill = skills[parseInt(btn.dataset.action, 10)];
         const cost = skill.apChange < 0 ? Math.abs(skill.apChange) : 0;
-        btn.disabled = !game.isHeroTurn || game.isGameOver || (skill.apChange < 0 && game.heroAP < cost);
+        btn.disabled = !game.isHeroTurn || game.isGameOver || (skill.apChange < 0 && game.heroPA < cost);
     });
 }
 
@@ -123,36 +123,36 @@ function heroAction(actionNumber) {
     const skill = skills[actionNumber_int];
     if (!skill) return;
     
-    if (skill.apChange < 0 && game.heroAP < Math.abs(skill.apChange)) {
-        addLog('Sem AP!');
+    if (skill.apChange < 0 && game.heroPA < Math.abs(skill.apChange)) {
+        addLog('Sem PA!');
         return;
     }
     
     // Reseta defesa de turno anterior
     game.defenseActive = false;
     
-    game.heroAP = Math.min(game.heroMaxAP, Math.max(0, game.heroAP + skill.apChange));
+    game.heroPA = Math.min(game.heroMaxPA, Math.max(0, game.heroPA + skill.apChange));
     
     if (skill.effect < 0) {
         const damage = Math.abs(skill.effect);
-        game.enemyHP = Math.max(0, game.enemyHP - damage);
-        addLog(`${skill.name} -${damage}HP`);
+        game.enemyPV = Math.max(0, game.enemyPV - damage);
+        addLog(`${skill.name} -${damage}PV`);
         playHeroSlashAnimation();
         showFloatingText(damage, enemyVisual, true);
         playEnemyHitAnimation();
 
-        if (game.enemyHP <= 0) {
+        if (game.enemyPV <= 0) {
             setTimeout(() => {
                 endGame('victory');
             }, 300);
         }
     } else if (skill.effect > 0) {
-        const healAmount = Math.min(skill.effect, game.heroMaxHP - game.heroHP);
-        game.heroHP = Math.min(game.heroMaxHP, game.heroHP + skill.effect);
-        addLog(`${skill.name} +${healAmount}HP`);
+        const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
+        game.heroPV = Math.min(game.heroMaxPV, game.heroPV + skill.effect);
+        addLog(`${skill.name} +${healAmount}PV`);
         showFloatingText(healAmount, document.querySelector('.hero-visual'), false);
     } else {
-        const apLabel = skill.apChange > 0 ? `+${skill.apChange} AP` : `${skill.apChange} AP`;
+        const apLabel = skill.apChange > 0 ? `+${skill.apChange} PA` : `${skill.apChange} PA`;
         addLog(`${skill.name} ${apLabel}`);
     }
     
@@ -185,13 +185,13 @@ function enemyTurn() {
     // Se herói tem defesa, reduz dano
     if (game.defenseActive) {
         actualDamage = Math.max(1, Math.floor(damage / 2));
-        addLog(`Bloqueado! -${actualDamage}HP`);
+        addLog(`Bloqueado! -${actualDamage}PV`);
         game.defenseActive = false;
     } else {
-        addLog(`Inimigo -${damage}HP`);
+        addLog(`Inimigo -${damage}PV`);
     }
     
-    game.heroHP = Math.max(0, game.heroHP - actualDamage);
+    game.heroPV = Math.max(0, game.heroPV - actualDamage);
     
     // Animação de tremor do herói quando sofre dano
     const heroSprite = document.querySelector('.hero-sprite');
@@ -202,7 +202,7 @@ function enemyTurn() {
     
     showFloatingText(actualDamage, document.querySelector('.hero-visual'), true);
     
-    if (game.heroHP <= 0) {
+    if (game.heroPV <= 0) {
         setTimeout(() => {
             endGame('defeat');
         }, 300);
