@@ -75,12 +75,8 @@ function updateActionButtons() {
 // ===== LOG SYSTEM =====
 
 function addLog(message) {
-    const timestamp = new Date().toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-    });
-    logContent.textContent += '\n' + message;
+
+    logContent.textContent += message + '\n';
     
     // Keep log scrolled to bottom
     const logElement = document.querySelector('.action-log');
@@ -163,8 +159,7 @@ function enemyTurn() {
         enemySprite.classList.remove('charge-attack');
     }, 600);
     
-    // Inimigo sempre causa 2 de dano fixo
-    const damage = 2;
+    const damage = enemyData.attackDamage;
     let actualDamage = damage;
     
     // Se herói tem defesa, reduz dano
