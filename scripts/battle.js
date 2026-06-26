@@ -25,6 +25,21 @@ const restartBtn = document.getElementById('restart-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
 const enemySprite = document.querySelector('.enemy-sprite');
+const heroPFElem = document.getElementById('hero-pf');
+
+// ===== UPDATE SKILL BUTTONS =====
+function updateSkillButtons() {
+    actionButtons.forEach(btn => {
+        const baseEffect = parseInt(btn.dataset.effect, 10);
+        const effectElem = btn.querySelector('.btn-effect');
+        
+        if (baseEffect !== 0) {
+            const totalEffect = baseEffect < 0 ? baseEffect * heroData.PF : baseEffect;
+            const sign = totalEffect < 0 ? '' : '+';
+            effectElem.textContent = `${sign}${totalEffect} PV`;
+        }
+    });
+}
 
 // ===== INICIALIZAÇÃO =====
 function initGame() {
@@ -69,8 +84,16 @@ function initGame() {
         enemySpriteDom.classList.remove('spawn');
     }, 800);
     
-    // Resetar log
-    logContent.textContent = '--- INÍCIO ---';
+    // Resetar log apenas na primeira batalha
+    if (currentEnemyIndexInStage === 0) {
+        logContent.textContent = '--- INÍCIO ---';
+    }
+    
+    // Atualizar PF do herói
+    heroPFElem.textContent = `PF: ${heroData.PF}`;
+    
+    // Atualizar valores dos botões de skill
+    updateSkillButtons();
     
     updateUI();
 }
@@ -146,11 +169,10 @@ function heroAction(actionNumber) {
     game.heroPA = Math.min(game.heroMaxPA, Math.max(0, game.heroPA + skill.apChange));
     
     if (skill.effect < 0) {
-        const damage = Math.abs(skill.effect);
+        const damage = Math.abs(skill.effect) * heroData.PF;
         game.enemyPV = Math.max(0, game.enemyPV - damage);
         addLog(`${skill.name} -${damage}PV`);
         playHeroSlashAnimation();
-        showFloatingText(damage, enemyVisual, true);
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
@@ -169,7 +191,6 @@ function heroAction(actionNumber) {
         const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
         game.heroPV = Math.min(game.heroMaxPV, game.heroPV + skill.effect);
         addLog(`${skill.name} +${healAmount}PV`);
-        showFloatingText(healAmount, document.querySelector('.hero-visual'), false);
     } else {
         const apLabel = skill.apChange > 0 ? `+${skill.apChange} PA` : `${skill.apChange} PA`;
         addLog(`${skill.name} ${apLabel}`);
@@ -217,8 +238,6 @@ function enemyTurn() {
     setTimeout(() => {
         heroSprite.classList.remove('take-damage');
     }, 500);
-    
-    showFloatingText(actualDamage, document.querySelector('.hero-visual'), true);
     
     if (game.heroPV <= 0) {
         setTimeout(() => {
@@ -275,30 +294,6 @@ function disableAllActions() {
 }
 
 // ===== ANIMATIONS =====
-function showFloatingText(amount, element, isDamage) {
-    const indicator = document.createElement('div');
-    
-    if (isDamage) {
-        indicator.className = 'damage-indicator';
-        indicator.textContent = `-${amount}`;
-        indicator.style.color = '#ff4444';
-    } else {
-        indicator.className = 'heal-indicator';
-        indicator.textContent = `+${amount}`;
-        indicator.style.color = '#00ff00';
-    }
-    
-    const rect = element.getBoundingClientRect();
-    indicator.style.left = (rect.left + rect.width / 2 - 15) + 'px';
-    indicator.style.top = (rect.top - 20) + 'px';
-    
-    document.body.appendChild(indicator);
-    
-    setTimeout(() => {
-        indicator.remove();
-    }, 600);
-}
-
 function playEnemyHitAnimation() {
     enemyVisual.classList.add('take-damage');
     setTimeout(() => {
