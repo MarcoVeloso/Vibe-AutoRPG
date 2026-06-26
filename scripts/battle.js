@@ -218,16 +218,32 @@ function enemyTurn() {
         enemySprite.classList.remove('charge-attack');
     }, 600);
     
-    const damage = currentEnemyData.attackDamage;
+    // Calcular faixa de PV do inimigo
+    const pvPercent = (game.enemyPV / game.enemyMaxPV) * 100;
+    let skillIndex = 0;
+    
+    if (pvPercent >= 81) skillIndex = 0;      // 100 a 81%
+    else if (pvPercent >= 61) skillIndex = 1; // 80 a 61%
+    else if (pvPercent >= 41) skillIndex = 2; // 60 a 41%
+    else if (pvPercent >= 21) skillIndex = 3; // 40 a 21%
+    else skillIndex = 4;                      // 20 a 0%
+    
+    // Obter índice do skill e dados do skill
+    const skillIndex_InArray = currentEnemyData.skills[skillIndex];
+    const skillDataIndex = skillIndex_InArray + 1; // +1 porque SKILLS_DATA começa em índice 1
+    const skill = SKILLS_DATA[skillDataIndex];
+    
+    // Calcular dano multiplicado pelo PF
+    const damage = Math.abs(skill.effect) * currentEnemyData.PF;
     let actualDamage = damage;
     
     // Se herói tem defesa, reduz dano
     if (game.defenseActive) {
         actualDamage = Math.max(1, Math.floor(damage / 2));
-        addLog(`Bloqueado! -${actualDamage}PV`);
+        addLog(`${skill.name} bloqueado! -${actualDamage}PV`);
         game.defenseActive = false;
     } else {
-        addLog(`Inimigo -${damage}PV`);
+        addLog(`${skill.name} -${actualDamage}PV`);
     }
     
     game.heroPV = Math.max(0, game.heroPV - actualDamage);

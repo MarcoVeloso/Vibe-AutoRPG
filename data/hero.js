@@ -3,5 +3,5 @@ const HERO_DATA = {
     maxPV: 10,
     initialPA: 0,
     maxPA: 5,
-    PF: 1,
+    PF: 2,
 };
