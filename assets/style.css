@@ -417,6 +417,19 @@ body {
     }
 }
 
+@keyframes spawn-enemy {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+        filter: blur(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        filter: blur(0px);
+    }
+}
+
 .hero-sprite.take-damage {
     animation: hero-shake 0.5s ease;
 }
@@ -427,6 +440,10 @@ body {
 
 .enemy-sprite.dissolve {
     animation: dissolve 1.2s ease-out forwards;
+}
+
+.enemy-sprite.spawn {
+    animation: spawn-enemy 0.8s ease-out forwards;
 }
 
 .hero-sprite.dissolve {

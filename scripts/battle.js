@@ -2,8 +2,12 @@
 const game = {};
 
 const heroData = HERO_DATA;
-const enemyData = ENEMIES_DATA[1];
 const skills = SKILLS_DATA;
+
+// ===== STAGE CONTROL =====
+let currentStage = 0;
+let currentEnemyIndexInStage = 0;
+let currentEnemyData = null;
 
 // ===== DOM ELEMENTS =====
 const heroPVElem = document.getElementById('hero-hp');
@@ -24,13 +28,23 @@ const enemySprite = document.querySelector('.enemy-sprite');
 
 // ===== INICIALIZAÇÃO =====
 function initGame() {
-    game.heroPV = heroData.maxPV;
-    game.heroMaxPV = heroData.maxPV;
-    game.heroPA = heroData.initialPA;
-    game.heroMaxPA = heroData.maxPA;
-    game.enemyPV = enemyData.maxPV;
-    game.enemyMaxPV = enemyData.maxPV;
-    game.isHeroTurn = false;
+    // Carregar dados do stage e inimigo atual
+    const stage = STAGE_DATA[currentStage];
+    const enemyIndexInStage = currentEnemyIndexInStage;
+    const enemyArrayIndex = stage.enemies[enemyIndexInStage];
+    currentEnemyData = ENEMIES_DATA[enemyArrayIndex];
+    
+    // Inicializar herói apenas na primeira batalha
+    if (game.heroPV === undefined) {
+        game.heroPV = heroData.maxPV;
+        game.heroMaxPV = heroData.maxPV;
+        game.heroPA = heroData.initialPA;
+        game.heroMaxPA = heroData.maxPA;
+    }
+    
+    game.enemyPV = currentEnemyData.maxPV;
+    game.enemyMaxPV = currentEnemyData.maxPV;
+    game.isHeroTurn = true;
     game.isGameOver = false;
     game.defenseActive = false;
     game.gameResult = null;
@@ -40,20 +54,25 @@ function initGame() {
     const enemySpriteDom = document.querySelector('.enemy-sprite');
     heroSprite.classList.remove('dissolve');
     enemySpriteDom.classList.remove('dissolve');
+    enemySpriteDom.classList.remove('spawn');
     
-    // Atualizar nome e sprite do inimigo
-    enemyNameLabel.textContent = `${enemyData.name.toUpperCase()} 1/1`;
-    enemySprite.textContent = enemyData.sprite;
+    // Atualizar nome e sprite do inimigo com contador
+    const totalEnemiesInStage = stage.enemies.length;
+    const currentEnemyNumber = enemyIndexInStage + 1;
+    enemyNameLabel.textContent = `${currentEnemyData.name.toUpperCase()} ${currentEnemyNumber}/${totalEnemiesInStage}`;
+    enemySprite.textContent = currentEnemyData.sprite;
+    enemySpriteDom.style.opacity = '1';
+    
+    // Aplicar animação de surgimento
+    enemySpriteDom.classList.add('spawn');
+    setTimeout(() => {
+        enemySpriteDom.classList.remove('spawn');
+    }, 800);
     
     // Resetar log
     logContent.textContent = '--- INÍCIO ---';
     
     updateUI();
-    
-    // Começa com turno do inimigo
-    setTimeout(() => {
-        enemyTurn();
-    }, 800);
 }
 
 // ===== UPDATE UI =====
@@ -135,9 +154,16 @@ function heroAction(actionNumber) {
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
+            // Aplicar animação de dissolução ao inimigo
+            const enemySpriteDom = document.querySelector('.enemy-sprite');
+            enemySpriteDom.classList.add('dissolve');
+            
+            game.isHeroTurn = false;
+            updateUI();
             setTimeout(() => {
-                endGame('victory');
+                loadNextEnemy();
             }, 300);
+            return;
         }
     } else if (skill.effect > 0) {
         const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
@@ -171,7 +197,7 @@ function enemyTurn() {
         enemySprite.classList.remove('charge-attack');
     }, 600);
     
-    const damage = enemyData.attackDamage;
+    const damage = currentEnemyData.attackDamage;
     let actualDamage = damage;
     
     // Se herói tem defesa, reduz dano
@@ -205,12 +231,29 @@ function enemyTurn() {
 }
 
 // ===== END GAME =====
+function loadNextEnemy() {
+    const stage = STAGE_DATA[currentStage];
+    currentEnemyIndexInStage++;
+    
+    if (currentEnemyIndexInStage < stage.enemies.length) {
+        // Há mais inimigos neste stage
+        addLog(`${currentEnemyData.name} derrotado! Próximo inimigo aparece...`);
+        // Aguarda: animação de dissolução (1.2s)
+        setTimeout(() => {
+            initGame();
+        }, 1200);
+    } else {
+        // Stage completo
+        endGame('victory');
+    }
+}
+
 function endGame(result) {
     game.isGameOver = true;
     game.gameResult = result;
     
     if (result === 'victory') {
-        addLog('VITÓRIA!');
+        addLog('VITÓRIA! STAGE COMPLETO!');
         // Animar dissolução do inimigo
         const enemySprite = document.querySelector('.enemy-sprite');
         enemySprite.classList.add('dissolve');
@@ -288,6 +331,11 @@ actionButtons.forEach(btn => {
 });
 
 restartBtn.addEventListener('click', () => {
+    currentStage = 0;
+    currentEnemyIndexInStage = 0;
+    // Resetar estado do herói para novo jogo
+    game.heroPV = undefined;
+    game.heroPA = undefined;
     initGame();
 });
 
