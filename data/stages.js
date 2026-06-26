@@ -1,5 +1,5 @@
 const STAGE_DATA = [
     {
-        enemies: [0, 0, 0]
+        enemies: [0, 1, 1]
     }
 ];

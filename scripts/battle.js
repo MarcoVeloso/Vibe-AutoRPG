@@ -2,13 +2,16 @@
 const game = {};
 
 const heroData = HERO_DATA;
-const enemyData = ENEMIES_DATA[0];
+const enemyData = ENEMIES_DATA[1];
 const skills = SKILLS_DATA;
 
 // ===== DOM ELEMENTS =====
 const heroPVElem = document.getElementById('hero-hp');
+const heroMaxPVElem = document.getElementById('hero-max-hp');
 const heroPAElem = document.getElementById('hero-ap');
+const heroMaxPAElem = document.getElementById('hero-max-ap');
 const enemyPVElem = document.getElementById('enemy-hp');
+const enemyMaxPVElem = document.getElementById('enemy-max-hp');
 const logContent = document.getElementById('log-content');
 const heroPVBar = document.querySelector('.hero-hp');
 const heroPABar = document.querySelector('.hero-ap');
@@ -16,14 +19,16 @@ const enemyPVBar = document.querySelector('.enemy-hp');
 const actionButtons = document.querySelectorAll('.action-btn');
 const restartBtn = document.getElementById('restart-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
+const enemyNameLabel = document.getElementById('enemy-name-label');
+const enemySprite = document.querySelector('.enemy-sprite');
 
 // ===== INICIALIZAÇÃO =====
 function initGame() {
-    game.heroPV = heroData.initialPV;
+    game.heroPV = heroData.maxPV;
     game.heroMaxPV = heroData.maxPV;
     game.heroPA = heroData.initialPA;
     game.heroMaxPA = heroData.maxPA;
-    game.enemyPV = enemyData.initialPV;
+    game.enemyPV = enemyData.maxPV;
     game.enemyMaxPV = enemyData.maxPV;
     game.isHeroTurn = false;
     game.isGameOver = false;
@@ -32,9 +37,13 @@ function initGame() {
     
     // Remover efeito de dissolução
     const heroSprite = document.querySelector('.hero-sprite');
-    const enemySprite = document.querySelector('.enemy-sprite');
+    const enemySpriteDom = document.querySelector('.enemy-sprite');
     heroSprite.classList.remove('dissolve');
-    enemySprite.classList.remove('dissolve');
+    enemySpriteDom.classList.remove('dissolve');
+    
+    // Atualizar nome e sprite do inimigo
+    enemyNameLabel.textContent = `${enemyData.name.toUpperCase()} 1/1`;
+    enemySprite.textContent = enemyData.sprite;
     
     // Resetar log
     logContent.textContent = '--- INÍCIO ---';
@@ -50,8 +59,11 @@ function initGame() {
 // ===== UPDATE UI =====
 function updateUI() {
     heroPVElem.textContent = game.heroPV;
+    heroMaxPVElem.textContent = game.heroMaxPV;
     heroPAElem.textContent = game.heroPA;
+    heroMaxPAElem.textContent = game.heroMaxPA;
     enemyPVElem.textContent = game.enemyPV;
+    enemyMaxPVElem.textContent = game.enemyMaxPV;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
     const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
