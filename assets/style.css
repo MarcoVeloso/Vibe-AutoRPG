@@ -38,6 +38,50 @@ body {
     overflow: hidden;
 }
 
+/* ===== PAINEL SUPERIOR ===== */
+.top-panel {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 8px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    height: 20px;
+}
+
+.restart-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-family: 'Pixel', cursive;
+    font-size: 24px;
+    padding: 0px 4px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    letter-spacing: 1px;
+    text-shadow: none;
+}
+
+.restart-btn:hover {
+    background: transparent;
+    box-shadow: none;
+    transform: scale(1.1);
+}
+
+.restart-btn:active {
+    transform: scale(0.95);
+}
+
+.gold-display {
+    font-size: 22px;
+    color: #f0c75e;
+    font-family: 'Pixel', cursive;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
 /* ===== SEÇÃO DO INIMIGO ===== */
 .enemy-section {
     flex: 0 0 auto;
@@ -167,6 +211,7 @@ body {
     align-items: center;
     justify-content: space-between;
     margin-top: -5px;
+    margin-bottom: -2px;
     font-size: 22px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -181,7 +226,7 @@ body {
 }
 
 .hero-info-center {
-    color: #c0c0c0;
+    color: #fff;
     text-align: center;
     flex: 1 1 auto;
     min-width: 0;
@@ -196,7 +241,7 @@ body {
 }
 
 .hero-info-right {
-    color: #f0c75e;
+    color: #c0c0c0;
     text-align: right;
 }
 
@@ -341,38 +386,6 @@ body {
     font-size: 18px;
     color: #55aaff;
     text-align: center;
-}
-
-/* ===== PAINEL INFERIOR ===== */
-.bottom-panel {
-    flex: 0 0 auto;
-    display: flex;
-    justify-content: center;
-    padding: 4px;
-}
-
-.restart-btn {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-    border: 3px solid #888;
-    color: #aaa;
-    font-family: 'Pixel', cursive;
-    font-size: 11px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.1s ease;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-.restart-btn:hover {
-    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
-    box-shadow: 0 0 15px rgba(170, 170, 170, 0.4);
-    transform: scale(1.05);
-}
-
-.restart-btn:active {
-    transform: scale(0.98);
 }
 
 /* ===== EFEITOS VISUAIS ===== */

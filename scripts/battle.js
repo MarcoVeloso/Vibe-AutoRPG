@@ -26,6 +26,7 @@ const enemyVisual = document.querySelector('.enemy-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
 const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
+const heroPDElem = document.getElementById('hero-pd');
 
 // ===== UPDATE SKILL BUTTONS =====
 function updateSkillButtons() {
@@ -55,6 +56,8 @@ function initGame() {
         game.heroMaxPV = heroData.maxPV;
         game.heroPA = heroData.initialPA;
         game.heroMaxPA = heroData.maxPA;
+        game.heroPD = heroData.initialPD;
+        game.heroMaxPD = heroData.initialPD;
     }
     
     game.enemyPV = currentEnemyData.maxPV;
@@ -86,8 +89,9 @@ function initGame() {
     
     logContent.textContent = `Batalha contra ${currentEnemyData.name}!`;
     
-    // Atualizar PF do herói
+    // Atualizar PF e PD do herói
     heroPFElem.textContent = `PF: ${heroData.PF}`;
+    heroPDElem.textContent = `PD: ${game.heroPD}`;
     
     // Atualizar valores dos botões de skill
     updateSkillButtons();

@@ -8,7 +8,13 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Topo: Barra e Inimigo -->
+        <!-- Topo: Controles e Ouro -->
+        <div class="top-panel">
+            <button id="restart-btn" class="restart-btn">🔄</button>
+            <div class="gold-display">$ 3400</div>
+        </div>
+
+        <!-- Inimigo -->
         <div class="enemy-section">
             <div class="enemy-hp-bar">
                 <div class="hp-label" id="enemy-name-label">INIMIGO 1/1</div>
@@ -44,9 +50,9 @@
                 </div>
 
                 <div class="hero-info-row">
-                    <span class="hero-info-left" id="hero-pf">PF: 1</span>
-                    <span class="hero-info-center">ATACAR PRIMEIRO</span>
-                    <span class="hero-info-right">$ 3400</span>
+                    <span class="hero-info-left" id="hero-pf">PF: 2</span>
+                    <span class="hero-info-center" id="hero-pd">PD: 0</span>
+                    <span class="hero-info-right">PRIMEIRO ATAQUE</span>
                 </div>
             </div>
         </div>
@@ -100,11 +106,6 @@
                     <div class="btn-effect neutral">0 PV</div>
                 </div>
             </button>
-        </div>
-
-        <!-- Painel Inferior -->
-        <div class="bottom-panel">
-            <button id="restart-btn" class="restart-btn">REINICIAR</button>
         </div>
     </div>
 
