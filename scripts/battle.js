@@ -84,10 +84,7 @@ function initGame() {
         enemySpriteDom.classList.remove('spawn');
     }, 800);
     
-    // Resetar log apenas na primeira batalha
-    if (currentEnemyIndexInStage === 0) {
-        logContent.textContent = '--- INÍCIO ---';
-    }
+    logContent.textContent = `Batalha contra ${currentEnemyData.name}!`;
     
     // Atualizar PF do herói
     heroPFElem.textContent = `PF: ${heroData.PF}`;
@@ -129,12 +126,7 @@ function updateActionButtons() {
 // ===== LOG SYSTEM =====
 
 function addLog(message) {
-
-    logContent.textContent += message + '\n';
-    
-    // Keep log scrolled to bottom
-    const logElement = document.querySelector('.action-log');
-    logElement.scrollTop = logElement.scrollHeight;
+    logContent.textContent = message;
 }
 
 // ===== DAMAGE CALCULATOR =====
@@ -171,7 +163,7 @@ function heroAction(actionNumber) {
     if (skill.effect < 0) {
         const damage = Math.abs(skill.effect) * heroData.PF;
         game.enemyPV = Math.max(0, game.enemyPV - damage);
-        addLog(`${skill.name} -${damage}PV`);
+        addLog(`Herói usou ${skill.name} (${currentEnemyData.name} -${damage} PV)`);
         playHeroSlashAnimation();
         playEnemyHitAnimation();
 
@@ -190,10 +182,10 @@ function heroAction(actionNumber) {
     } else if (skill.effect > 0) {
         const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
         game.heroPV = Math.min(game.heroMaxPV, game.heroPV + skill.effect);
-        addLog(`${skill.name} +${healAmount}PV`);
+        addLog(`Herói usou ${skill.name} (Herói +${healAmount} PV)`);
     } else {
-        const apLabel = skill.apChange > 0 ? `+${skill.apChange} PA` : `${skill.apChange} PA`;
-        addLog(`${skill.name} ${apLabel}`);
+        const apLabel = skill.apChange > 0 ? `+${skill.apChange}` : `${skill.apChange}`;
+        addLog(`Herói usou ${skill.name} (Herói ${apLabel} PA)`);
     }
     
     game.isHeroTurn = false;
@@ -240,10 +232,10 @@ function enemyTurn() {
     // Se herói tem defesa, reduz dano
     if (game.defenseActive) {
         actualDamage = Math.max(1, Math.floor(damage / 2));
-        addLog(`${skill.name} bloqueado! -${actualDamage}PV`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (Herói -${actualDamage} PV)`);
         game.defenseActive = false;
     } else {
-        addLog(`${skill.name} -${actualDamage}PV`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (Herói -${actualDamage} PV)`);
     }
     
     game.heroPV = Math.max(0, game.heroPV - actualDamage);
@@ -272,7 +264,7 @@ function loadNextEnemy() {
     
     if (currentEnemyIndexInStage < stage.enemies.length) {
         // Há mais inimigos neste stage
-        addLog(`${currentEnemyData.name} derrotado! Próximo inimigo aparece...`);
+        addLog(`${currentEnemyData.name} foi derrotado!`);
         // Aguarda: animação de dissolução (1.2s)
         setTimeout(() => {
             initGame();
@@ -293,7 +285,7 @@ function endGame(result) {
         const enemySprite = document.querySelector('.enemy-sprite');
         enemySprite.classList.add('dissolve');
     } else {
-        addLog('DERROTA!');
+        addLog('VOCE FOI DERROTADO.');
         // Animar dissolução do herói
         const heroSprite = document.querySelector('.hero-sprite');
         heroSprite.classList.add('dissolve');

@@ -249,7 +249,7 @@ body {
     background: #0a0a0a;
     border: 2px solid #888;
     padding: 5px;
-    height: 45px;
+    height: 35px;
     overflow: hidden;
     display: flex;
     align-items: flex-end;
@@ -257,11 +257,13 @@ body {
 }
 
 .log-text {
-    font-size: 15px;
+    font-size: 20px;
     color: #aaa;
     line-height: 1;
     word-break: break-word;
-    white-space: pre-wrap;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
