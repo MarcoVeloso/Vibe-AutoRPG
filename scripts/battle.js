@@ -216,7 +216,8 @@ function heroAction(actionNumber) {
     // Acumula PD se a skill aumentar
     if (skill.pdChange > 0) {
         game.heroPD = (game.heroPD || 0) + skill.pdChange;
-        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: +${skill.pdChange} PD)`);
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name} +${skill.pdChange} PD)`);
+        playSkillAnimation(skill.anim, heroVisual);
         game.isHeroTurn = false;
         updateUI();
         setTimeout(() => { if (!game.isGameOver) enemyTurn(); }, 1000);
@@ -226,8 +227,8 @@ function heroAction(actionNumber) {
     if (skill.effect < 0) {
         const damage = Math.abs(skill.effect) * heroData.PF;
         game.enemyPV = Math.max(0, game.enemyPV - damage);
-        addLog(`${heroData.name} usou ${skill.name} (${currentEnemyData.name}: -${damage} PV)`);
-        playHeroSlashAnimation();
+        addLog(`${heroData.name} usou ${skill.name} (${currentEnemyData.name} -${damage} PV)`);
+        playSkillAnimation(skill.anim, enemyVisual);
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
@@ -245,10 +246,12 @@ function heroAction(actionNumber) {
     } else if (skill.effect > 0) {
         const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
         game.heroPV = Math.min(game.heroMaxPV, game.heroPV + skill.effect);
-        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: +${healAmount} PV)`);
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name} +${healAmount} PV)`);
+        playSkillAnimation(skill.anim, heroVisual);
     } else {
         const apLabel = skill.apChange > 0 ? `+${skill.apChange}` : `${skill.apChange}`;
-        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: ${apLabel} PA)`);
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name} ${apLabel} PA)`);
+        playSkillAnimation(skill.anim, heroVisual);
     }
     
     game.isHeroTurn = false;
@@ -296,13 +299,13 @@ function enemyTurn() {
 
     if (absorbed > 0) {
         const dmgText = finalDamage > 0 ? `-${finalDamage} PV, ` : '';
-        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: ${dmgText}${absorbed} bloqueado)`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name} ${dmgText}${absorbed} bloqueado)`);
     } else {
-        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${finalDamage} PV)`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name} -${finalDamage} PV)`);
     }
 
     game.heroPV = Math.max(0, game.heroPV - finalDamage);
-    playEnemySlashAnimation();
+    playSkillAnimation(skill.anim, heroVisual);
     
     // Animação de tremor do herói quando sofre dano
     const heroSprite = document.querySelector('.hero-sprite');
@@ -376,36 +379,35 @@ function playEnemyHitAnimation() {
     }, 300);
 }
 
-function playEnemySlashAnimation() {
-    const slash = document.createElement('div');
-    slash.className = 'slash-effect';
-    slash.textContent = '🗡️';
+function playSkillAnimation(animKey, targetVisual) {
+    const animData = ANIM_SKILLS_DATA[animKey];
+    if (!animData) return;
 
-    const rect = heroVisual.getBoundingClientRect();
-    slash.style.left = (rect.left + rect.width / 2 - 37) + 'px';
-    slash.style.top = (rect.top + rect.height / 2 - 37) + 'px';
+    const count    = animData.count    || 1;
+    const spread   = animData.spread   || 0;
+    const duration = animData.duration || 500;
 
-    document.body.appendChild(slash);
+    const rect = targetVisual.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2 - 37;
+    const cy = rect.top  + rect.height / 2 - 37;
 
-    setTimeout(() => {
-        slash.remove();
-    }, 500);
-}
+    for (let i = 0; i < count; i++) {
+        const delay = i * (duration / count / 2);
+        const ox = spread ? (Math.random() - 0.5) * spread * 2 : 0;
+        const oy = spread ? (Math.random() - 0.5) * spread * 2 : 0;
 
-function playHeroSlashAnimation() {
-    const slash = document.createElement('div');
-    slash.className = 'slash-effect';
-    slash.textContent = '🗡️';
-    
-    const rect = enemyVisual.getBoundingClientRect();
-    slash.style.left = (rect.left + rect.width / 2 - 37) + 'px';
-    slash.style.top = (rect.top + rect.height / 2 - 37) + 'px';
-    
-    document.body.appendChild(slash);
-    
-    setTimeout(() => {
-        slash.remove();
-    }, 500);
+        const el = document.createElement('div');
+        el.className = 'effect-anim';
+        el.textContent = animData.sprite;
+        el.style.left = (cx + ox) + 'px';
+        el.style.top  = (cy + oy) + 'px';
+        el.style.animationDelay = delay + 'ms';
+        el.style.animation = `${animData.animation} ${duration}ms ease-out ${delay}ms forwards`;
+        el.style.opacity = '0';
+
+        document.body.appendChild(el);
+        setTimeout(() => { el.remove(); }, duration + delay + 100);
+    }
 }
 
 // ===== EVENT LISTENERS =====
