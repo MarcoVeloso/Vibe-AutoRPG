@@ -53,21 +53,14 @@ body {
 
 .restart-btn {
     background: transparent;
-    border: 2px solid #aaa;
     color: #aaa;
     font-family: 'Pixel', cursive;
-    font-size: 20px;
+    font-size: 22px;
     padding: 0px 5px;
     cursor: pointer;
     transition: all 0.1s ease;
     letter-spacing: 1px;
     text-shadow: none;
-}
-
-.restart-btn:hover {
-    background: transparent;
-    box-shadow: none;
-    transform: scale(1.1);
 }
 
 .restart-btn:active {
