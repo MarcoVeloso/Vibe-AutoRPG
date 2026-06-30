@@ -22,6 +22,7 @@ const heroPABar = document.querySelector('.hero-ap');
 const enemyPVBar = document.querySelector('.enemy-hp');
 const restartBtn = document.getElementById('restart-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
+const heroVisual = document.querySelector('.hero-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
 const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
@@ -253,12 +254,12 @@ function heroAction(actionNumber) {
     game.isHeroTurn = false;
     updateUI();
     
-    // Próximo turno do inimigo
+    // Próximo turno do inimigo (500ms animação + 1000ms delay)
     setTimeout(() => {
         if (!game.isGameOver) {
             enemyTurn();
         }
-    }, 1000);
+    }, 1500);
 }
 
 // ===== ENEMY TURN =====
@@ -301,6 +302,7 @@ function enemyTurn() {
     }
 
     game.heroPV = Math.max(0, game.heroPV - finalDamage);
+    playEnemySlashAnimation();
     
     // Animação de tremor do herói quando sofre dano
     const heroSprite = document.querySelector('.hero-sprite');
@@ -315,8 +317,10 @@ function enemyTurn() {
             endGame('defeat');
         }, 300);
     } else {
-        game.isHeroTurn = true;
-        updateUI();
+        setTimeout(() => {
+            game.isHeroTurn = true;
+            updateUI();
+        }, 1000);
     }
 }
 
@@ -370,6 +374,22 @@ function playEnemyHitAnimation() {
     setTimeout(() => {
         enemyVisual.classList.remove('take-damage');
     }, 300);
+}
+
+function playEnemySlashAnimation() {
+    const slash = document.createElement('div');
+    slash.className = 'slash-effect';
+    slash.textContent = '🗡️';
+
+    const rect = heroVisual.getBoundingClientRect();
+    slash.style.left = (rect.left + rect.width / 2 - 37) + 'px';
+    slash.style.top = (rect.top + rect.height / 2 - 37) + 'px';
+
+    document.body.appendChild(slash);
+
+    setTimeout(() => {
+        slash.remove();
+    }, 500);
 }
 
 function playHeroSlashAnimation() {
