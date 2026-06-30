@@ -20,24 +20,73 @@ const logContent = document.getElementById('log-content');
 const heroPVBar = document.querySelector('.hero-hp');
 const heroPABar = document.querySelector('.hero-ap');
 const enemyPVBar = document.querySelector('.enemy-hp');
-const actionButtons = document.querySelectorAll('.action-btn');
 const restartBtn = document.getElementById('restart-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
 const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
 const heroPDElem = document.getElementById('hero-pd');
+const actionsGrid = document.getElementById('actions-grid');
+
+// ===== RENDER SKILL BUTTONS =====
+function renderSkillButtons() {
+    actionsGrid.innerHTML = '';
+
+    heroData.skills.forEach(skillId => {
+        const skill = SKILLS_DATA[skillId];
+        if (!skill) return;
+
+        // Calcular custo/efeito para exibição
+        const apCost = skill.apChange !== 0 ? `${skill.apChange > 0 ? '+' : ''}${skill.apChange} PA` : null;
+
+        let effectText = null;
+        let effectClass = 'neutral';
+        if (skill.pdChange > 0) {
+            effectText = `+${skill.pdChange} PD`;
+            effectClass = 'positive';
+        } else if (skill.effect < 0) {
+            const totalDmg = Math.abs(skill.effect) * heroData.PF;
+            effectText = `-${totalDmg} PV`;
+            effectClass = 'negative';
+        } else if (skill.effect > 0) {
+            effectText = `+${skill.effect} PV`;
+            effectClass = 'positive';
+        }
+
+        const metaItems = [
+            apCost ? `<div class="btn-cost">${apCost}</div>` : '',
+            effectText ? `<div class="btn-effect ${effectClass}">${effectText}</div>` : ''
+        ].join('');
+
+        const btn = document.createElement('button');
+        btn.className = 'action-btn';
+        btn.dataset.action = skillId;
+        btn.dataset.effect = skill.effect;
+        btn.innerHTML = `
+            <div class="btn-title">${skill.name}</div>
+            ${metaItems ? `<div class="btn-meta-row">${metaItems}</div>` : ''}`;
+        btn.addEventListener('click', () => {
+            btn.blur();
+            heroAction(skillId);
+        });
+        actionsGrid.appendChild(btn);
+    });
+}
 
 // ===== UPDATE SKILL BUTTONS =====
 function updateSkillButtons() {
-    actionButtons.forEach(btn => {
-        const baseEffect = parseInt(btn.dataset.effect, 10);
+    actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
+        const skillId = parseInt(btn.dataset.action, 10);
+        const skill = SKILLS_DATA[skillId];
         const effectElem = btn.querySelector('.btn-effect');
-        
-        if (baseEffect !== 0) {
-            const totalEffect = baseEffect < 0 ? baseEffect * heroData.PF : baseEffect;
-            const sign = totalEffect < 0 ? '' : '+';
-            effectElem.textContent = `${sign}${totalEffect} PV`;
+
+        if (skill.pdChange > 0) {
+            effectElem.textContent = `+${skill.pdChange} PD`;
+        } else if (skill.effect < 0) {
+            const totalDmg = Math.abs(skill.effect) * heroData.PF;
+            effectElem.textContent = `-${totalDmg} PV`;
+        } else if (skill.effect > 0) {
+            effectElem.textContent = `+${skill.effect} PV`;
         }
     });
 }
@@ -56,10 +105,12 @@ function initGame() {
         game.heroMaxPV = heroData.maxPV;
         game.heroPA = heroData.initialPA;
         game.heroMaxPA = heroData.maxPA;
-        game.heroPD = heroData.initialPD;
-        game.heroMaxPD = heroData.initialPD;
     }
-    
+    // PD é levado entre batalhas; inicializa apenas se nunca definido
+    if (game.heroPD === undefined || isNaN(game.heroPD)) {
+        game.heroPD = heroData.initialPD;
+    }
+
     game.enemyPV = currentEnemyData.maxPV;
     game.enemyMaxPV = currentEnemyData.maxPV;
     game.isHeroTurn = true;
@@ -89,9 +140,8 @@ function initGame() {
     
     logContent.textContent = `Batalha contra ${currentEnemyData.name}!`;
     
-    // Atualizar PF e PD do herói
+    // Atualizar PF do herói
     heroPFElem.textContent = `PF: ${heroData.PF}`;
-    heroPDElem.textContent = `PD: ${game.heroPD}`;
     
     // Atualizar valores dos botões de skill
     updateSkillButtons();
@@ -121,7 +171,7 @@ function updateUI() {
 }
 
 function updateActionButtons() {
-    actionButtons.forEach(btn => {
+    actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
         const skill = skills[parseInt(btn.dataset.action, 10)];
         const cost = skill.apChange < 0 ? Math.abs(skill.apChange) : 0;
         btn.disabled = !game.isHeroTurn || game.isGameOver || (skill.apChange < 0 && game.heroPA < cost);
@@ -164,8 +214,7 @@ function heroAction(actionNumber) {
 
     // Acumula PD se a skill aumentar
     if (skill.pdChange > 0) {
-        game.heroPD += skill.pdChange;
-        heroPDElem.textContent = `PD: ${game.heroPD}`;
+        game.heroPD = (game.heroPD || 0) + skill.pdChange;
         addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: +${skill.pdChange} PD)`);
         game.isHeroTurn = false;
         updateUI();
@@ -233,27 +282,25 @@ function enemyTurn() {
     else if (pvPercent >= 21) skillIndex = 3; // 40 a 21%
     else skillIndex = 4;                      // 20 a 0%
     
-    // Obter índice do skill e dados do skill
-    const skillIndex_InArray = currentEnemyData.skills[skillIndex];
-    const skillDataIndex = skillIndex_InArray + 1; // +1 porque SKILLS_DATA começa em índice 1
+    // Obter índice do skill e dados do skill (referência direta ao SKILLS_DATA)
+    const skillDataIndex = currentEnemyData.skills[skillIndex];
     const skill = SKILLS_DATA[skillDataIndex];
     
-    // Calcular dano multiplicado pelo PF
-    const damage = Math.abs(skill.effect) * currentEnemyData.PF;
-    let actualDamage = damage;
+    // DANO FINAL = EFEITO - PD
+    const rawDamage = Math.abs(skill.effect) * currentEnemyData.PF;
+    const pd = Math.max(0, game.heroPD || 0);
+    const absorbed = Math.min(pd, rawDamage);
+    game.heroPD = pd - absorbed;
+    const finalDamage = rawDamage - absorbed;
 
-    // Abater PD acumulado do herói
-    if (game.heroPD > 0) {
-        const absorbed = Math.min(game.heroPD, actualDamage);
-        actualDamage = Math.max(0, actualDamage - absorbed);
-        game.heroPD = Math.max(0, game.heroPD - absorbed);
-        heroPDElem.textContent = `PD: ${game.heroPD}`;
-        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${actualDamage} PV, ${absorbed} bloqueado)`);
+    if (absorbed > 0) {
+        const dmgText = finalDamage > 0 ? `-${finalDamage} PV, ` : '';
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: ${dmgText}${absorbed} bloqueado)`);
     } else {
-        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${actualDamage} PV)`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${finalDamage} PV)`);
     }
-    
-    game.heroPV = Math.max(0, game.heroPV - actualDamage);
+
+    game.heroPV = Math.max(0, game.heroPV - finalDamage);
     
     // Animação de tremor do herói quando sofre dano
     const heroSprite = document.querySelector('.hero-sprite');
@@ -263,6 +310,7 @@ function enemyTurn() {
     }, 500);
     
     if (game.heroPV <= 0) {
+        updateUI();
         setTimeout(() => {
             endGame('defeat');
         }, 300);
@@ -311,7 +359,7 @@ function endGame(result) {
 }
 
 function disableAllActions() {
-    actionButtons.forEach(btn => {
+    actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
         btn.disabled = true;
     });
 }
@@ -341,14 +389,6 @@ function playHeroSlashAnimation() {
 }
 
 // ===== EVENT LISTENERS =====
-actionButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        btn.blur();
-        const action = btn.getAttribute('data-action');
-        heroAction(action);
-    });
-});
-
 restartBtn.addEventListener('click', () => {
     restartBtn.blur();
     currentStage = 0;
@@ -360,4 +400,5 @@ restartBtn.addEventListener('click', () => {
 });
 
 // ===== START GAME =====
+renderSkillButtons();
 initGame();
