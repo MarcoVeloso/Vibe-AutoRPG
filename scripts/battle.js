@@ -107,6 +107,7 @@ function updateUI() {
     heroMaxPAElem.textContent = game.heroMaxPA;
     enemyPVElem.textContent = game.enemyPV;
     enemyMaxPVElem.textContent = game.enemyMaxPV;
+    heroPDElem.textContent = `PD: ${game.heroPD}`;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
     const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
@@ -159,15 +160,23 @@ function heroAction(actionNumber) {
         return;
     }
     
-    // Reseta defesa de turno anterior
-    game.defenseActive = false;
-    
     game.heroPA = Math.min(game.heroMaxPA, Math.max(0, game.heroPA + skill.apChange));
-    
+
+    // Acumula PD se a skill aumentar
+    if (skill.pdChange > 0) {
+        game.heroPD += skill.pdChange;
+        heroPDElem.textContent = `PD: ${game.heroPD}`;
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: +${skill.pdChange} PD)`);
+        game.isHeroTurn = false;
+        updateUI();
+        setTimeout(() => { if (!game.isGameOver) enemyTurn(); }, 1000);
+        return;
+    }
+
     if (skill.effect < 0) {
         const damage = Math.abs(skill.effect) * heroData.PF;
         game.enemyPV = Math.max(0, game.enemyPV - damage);
-        addLog(`Herói usou ${skill.name} (${currentEnemyData.name} -${damage} PV)`);
+        addLog(`${heroData.name} usou ${skill.name} (${currentEnemyData.name}: -${damage} PV)`);
         playHeroSlashAnimation();
         playEnemyHitAnimation();
 
@@ -186,10 +195,10 @@ function heroAction(actionNumber) {
     } else if (skill.effect > 0) {
         const healAmount = Math.min(skill.effect, game.heroMaxPV - game.heroPV);
         game.heroPV = Math.min(game.heroMaxPV, game.heroPV + skill.effect);
-        addLog(`Herói usou ${skill.name} (Herói +${healAmount} PV)`);
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: +${healAmount} PV)`);
     } else {
         const apLabel = skill.apChange > 0 ? `+${skill.apChange}` : `${skill.apChange}`;
-        addLog(`Herói usou ${skill.name} (Herói ${apLabel} PA)`);
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name}: ${apLabel} PA)`);
     }
     
     game.isHeroTurn = false;
@@ -232,14 +241,16 @@ function enemyTurn() {
     // Calcular dano multiplicado pelo PF
     const damage = Math.abs(skill.effect) * currentEnemyData.PF;
     let actualDamage = damage;
-    
-    // Se herói tem defesa, reduz dano
-    if (game.defenseActive) {
-        actualDamage = Math.max(1, Math.floor(damage / 2));
-        addLog(`${currentEnemyData.name} usou ${skill.name} (Herói -${actualDamage} PV)`);
-        game.defenseActive = false;
+
+    // Abater PD acumulado do herói
+    if (game.heroPD > 0) {
+        const absorbed = Math.min(game.heroPD, actualDamage);
+        actualDamage = Math.max(0, actualDamage - absorbed);
+        game.heroPD = Math.max(0, game.heroPD - absorbed);
+        heroPDElem.textContent = `PD: ${game.heroPD}`;
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${actualDamage} PV, ${absorbed} bloqueado)`);
     } else {
-        addLog(`${currentEnemyData.name} usou ${skill.name} (Herói -${actualDamage} PV)`);
+        addLog(`${currentEnemyData.name} usou ${skill.name} (${heroData.name}: -${actualDamage} PV)`);
     }
     
     game.heroPV = Math.max(0, game.heroPV - actualDamage);
@@ -332,12 +343,14 @@ function playHeroSlashAnimation() {
 // ===== EVENT LISTENERS =====
 actionButtons.forEach(btn => {
     btn.addEventListener('click', () => {
+        btn.blur();
         const action = btn.getAttribute('data-action');
         heroAction(action);
     });
 });
 
 restartBtn.addEventListener('click', () => {
+    restartBtn.blur();
     currentStage = 0;
     currentEnemyIndexInStage = 0;
     // Resetar estado do herói para novo jogo

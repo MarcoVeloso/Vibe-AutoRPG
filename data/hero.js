@@ -1,5 +1,5 @@
 const HERO_DATA = {
-    name: 'Herói',
+    name: 'Hiro',
     maxPV: 10,
     initialPA: 0,
     maxPA: 5,
