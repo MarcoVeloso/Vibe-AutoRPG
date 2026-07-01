@@ -28,6 +28,7 @@ const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
 const heroPDElem = document.getElementById('hero-pd');
 const actionsGrid = document.getElementById('actions-grid');
+const turnTimerBar = document.getElementById('turn-timer-bar');
 
 // ===== RENDER SKILL BUTTONS =====
 function renderSkillButtons() {
@@ -68,7 +69,7 @@ function renderSkillButtons() {
             ${metaItems ? `<div class="btn-meta-row">${metaItems}</div>` : ''}`;
         btn.addEventListener('click', () => {
             btn.blur();
-            heroAction(skillId);
+            selectSkill(skillId);
         });
         actionsGrid.appendChild(btn);
     });
@@ -148,6 +149,7 @@ function initGame() {
     updateSkillButtons();
     
     updateUI();
+    startTurn();
 }
 
 // ===== UPDATE UI =====
@@ -175,7 +177,7 @@ function updateActionButtons() {
     actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
         const skill = skills[parseInt(btn.dataset.action, 10)];
         const cost = skill.apChange < 0 ? Math.abs(skill.apChange) : 0;
-        btn.disabled = !game.isHeroTurn || game.isGameOver || (skill.apChange < 0 && game.heroPA < cost);
+        btn.disabled = game.isGameOver || (skill.apChange < 0 && game.heroPA < cost);
     });
 }
 
@@ -198,19 +200,87 @@ function calculateDamage(actionNumber) {
     return damages[actionNumber];
 }
 
-// ===== HERO ACTION =====
-function heroAction(actionNumber) {
-    if (!game.isHeroTurn || game.isGameOver) return;
-    
-    const actionNumber_int = parseInt(actionNumber, 10);
-    const skill = skills[actionNumber_int];
-    if (!skill) return;
-    
-    if (skill.apChange < 0 && game.heroPA < Math.abs(skill.apChange)) {
-        addLog('Sem PA!');
-        return;
+// ===== TURN CONTROL =====
+const TURN_DURATION = 3000;
+let turnTimeout = null;
+
+function startTimerBar() {
+    turnTimerBar.style.transition = 'none';
+    turnTimerBar.style.width = '100%';
+    // Força reflow para reiniciar a transição
+    void turnTimerBar.offsetWidth;
+    turnTimerBar.style.transition = `width ${TURN_DURATION}ms linear`;
+    turnTimerBar.style.width = '0%';
+}
+
+function stopTimerBar() {
+    turnTimerBar.style.transition = 'none';
+    turnTimerBar.style.width = '0%';
+}
+
+function canAfford(skill) {
+    return !(skill.apChange < 0 && game.heroPA < Math.abs(skill.apChange));
+}
+
+function clearSelection() {
+    actionsGrid.querySelectorAll('.action-btn').forEach(btn => btn.classList.remove('selected'));
+}
+
+function highlightSelection(skillId) {
+    actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.action, 10) === skillId);
+    });
+}
+
+// Seleciona (não executa) a skill do botão clicado; permitido em qualquer turno
+function selectSkill(skillId) {
+    if (game.isGameOver) return;
+    const skill = skills[skillId];
+    if (!skill || !canAfford(skill)) return;
+    game.selectedSkill = skillId;
+    highlightSelection(skillId);
+}
+
+// Inicia um turno de 3s (herói: aguarda seleção; inimigo: age ao final)
+function startTurn() {
+    if (game.isGameOver) return;
+    if (turnTimeout) clearTimeout(turnTimeout);
+    updateUI();
+    startTimerBar();
+
+    if (game.isHeroTurn) {
+        // Mantém a seleção do jogador se ainda for válida; senão, seleção padrão
+        if (game.selectedSkill == null || !canAfford(skills[game.selectedSkill])) {
+            const defaultSkill = heroData.skills.find(id => canAfford(skills[id]));
+            game.selectedSkill = defaultSkill != null ? defaultSkill : null;
+        }
+        if (game.selectedSkill != null) highlightSelection(game.selectedSkill);
+        turnTimeout = setTimeout(executeHeroTurn, TURN_DURATION);
+    } else {
+        turnTimeout = setTimeout(enemyTurn, TURN_DURATION);
     }
-    
+}
+
+// Alterna o turno e reinicia o ciclo
+function endTurn() {
+    if (game.isGameOver) return;
+    game.isHeroTurn = !game.isHeroTurn;
+    startTurn();
+}
+
+// ===== HERO TURN EXECUTION =====
+function executeHeroTurn() {
+    if (game.isGameOver) return;
+    clearSelection();
+
+    let skillId = game.selectedSkill;
+    let skill = skills[skillId];
+    // Fallback: se nada selecionado ou sem PA, usa a primeira skill do herói
+    if (!skill || !canAfford(skill)) {
+        skillId = heroData.skills[0];
+        skill = skills[skillId];
+    }
+
     game.heroPA = Math.min(game.heroMaxPA, Math.max(0, game.heroPA + skill.apChange));
 
     // Acumula PD se a skill aumentar
@@ -218,9 +288,8 @@ function heroAction(actionNumber) {
         game.heroPD = (game.heroPD || 0) + skill.pdChange;
         addLog(`${heroData.name} usou ${skill.name} (${heroData.name} +${skill.pdChange} PD)`);
         playSkillAnimation(skill.anim, heroVisual);
-        game.isHeroTurn = false;
         updateUI();
-        setTimeout(() => { if (!game.isGameOver) enemyTurn(); }, 1000);
+        endTurn();
         return;
     }
 
@@ -235,9 +304,9 @@ function heroAction(actionNumber) {
             // Aplicar animação de dissolução ao inimigo
             const enemySpriteDom = document.querySelector('.enemy-sprite');
             enemySpriteDom.classList.add('dissolve');
-            
-            game.isHeroTurn = false;
             updateUI();
+            if (turnTimeout) clearTimeout(turnTimeout);
+            stopTimerBar();
             setTimeout(() => {
                 loadNextEnemy();
             }, 300);
@@ -253,16 +322,9 @@ function heroAction(actionNumber) {
         addLog(`${heroData.name} usou ${skill.name} (${heroData.name} ${apLabel} PA)`);
         playSkillAnimation(skill.anim, heroVisual);
     }
-    
-    game.isHeroTurn = false;
+
     updateUI();
-    
-    // Próximo turno do inimigo (500ms animação + 1000ms delay)
-    setTimeout(() => {
-        if (!game.isGameOver) {
-            enemyTurn();
-        }
-    }, 1500);
+    endTurn();
 }
 
 // ===== ENEMY TURN =====
@@ -315,15 +377,13 @@ function enemyTurn() {
     }, 500);
     
     if (game.heroPV <= 0) {
-        updateUI();
+        if (turnTimeout) clearTimeout(turnTimeout);
+        stopTimerBar();
         setTimeout(() => {
             endGame('defeat');
         }, 300);
     } else {
-        setTimeout(() => {
-            game.isHeroTurn = true;
-            updateUI();
-        }, 1000);
+        endTurn();
     }
 }
 
