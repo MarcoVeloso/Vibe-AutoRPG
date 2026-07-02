@@ -350,11 +350,13 @@ body {
     opacity: 0.5;
 }
 
-.action-btn.selected {
+.action-btn.selected,
+.action-btn.selected:hover:not(:disabled),
+.action-btn.selected:active:not(:disabled) {
     border-color: #fff;
     color: #fff;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 0 2px #000 inset;
-    background: linear-gradient(135deg, #2f2f2f 0%, #1a1a1a 100%);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.7), 0 0 0 2px #000 inset;
+    background: linear-gradient(135deg, #6a6a6a 0%, #3a3a3a 100%);
 }
 
 .action-btn.selected:disabled {

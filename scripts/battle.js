@@ -201,7 +201,9 @@ function calculateDamage(actionNumber) {
 }
 
 // ===== TURN CONTROL =====
-const TURN_DURATION = 3000;
+const TURN_DURATION = 5000;
+// Pausa entre ações para que as animações de um turno terminem antes do próximo
+const ACTION_DELAY = 1000;
 let turnTimeout = null;
 
 function startTimerBar() {
@@ -232,23 +234,33 @@ function highlightSelection(skillId) {
     });
 }
 
-// Seleciona (não executa) a skill do botão clicado; permitido em qualquer turno
+// Seleciona a skill do botão clicado; permitido em qualquer turno.
+// Se a skill já estiver selecionada e for o turno do herói, executa imediatamente.
 function selectSkill(skillId) {
     if (game.isGameOver) return;
     const skill = skills[skillId];
     if (!skill || !canAfford(skill)) return;
+
+    if (game.isHeroTurn && game.selectedSkill === skillId) {
+        // Clicar novamente na skill já selecionada: executa na hora, zera o tempo
+        if (turnTimeout) clearTimeout(turnTimeout);
+        stopTimerBar();
+        executeHeroTurn();
+        return;
+    }
+
     game.selectedSkill = skillId;
     highlightSelection(skillId);
 }
 
-// Inicia um turno de 3s (herói: aguarda seleção; inimigo: age ao final)
+// Inicia um turno (herói: 5s com barra de tempo aguardando seleção; inimigo: age imediatamente)
 function startTurn() {
     if (game.isGameOver) return;
     if (turnTimeout) clearTimeout(turnTimeout);
     updateUI();
-    startTimerBar();
 
     if (game.isHeroTurn) {
+        startTimerBar();
         // Mantém a seleção do jogador se ainda for válida; senão, seleção padrão
         if (game.selectedSkill == null || !canAfford(skills[game.selectedSkill])) {
             const defaultSkill = heroData.skills.find(id => canAfford(skills[id]));
@@ -257,15 +269,17 @@ function startTurn() {
         if (game.selectedSkill != null) highlightSelection(game.selectedSkill);
         turnTimeout = setTimeout(executeHeroTurn, TURN_DURATION);
     } else {
-        turnTimeout = setTimeout(enemyTurn, TURN_DURATION);
+        // Inimigo age imediatamente, sem contagem de tempo
+        enemyTurn();
     }
 }
 
-// Alterna o turno e reinicia o ciclo
+// Alterna o turno e reinicia o ciclo após uma breve pausa (turnos consecutivos)
 function endTurn() {
     if (game.isGameOver) return;
     game.isHeroTurn = !game.isHeroTurn;
-    startTurn();
+    if (turnTimeout) clearTimeout(turnTimeout);
+    turnTimeout = setTimeout(startTurn, ACTION_DELAY);
 }
 
 // ===== HERO TURN EXECUTION =====
