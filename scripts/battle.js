@@ -21,6 +21,7 @@ const heroPVBar = document.querySelector('.hero-hp');
 const heroPABar = document.querySelector('.hero-ap');
 const enemyPVBar = document.querySelector('.enemy-hp');
 const restartBtn = document.getElementById('restart-btn');
+const fastBtn = document.getElementById('fast-btn');
 const enemyVisual = document.querySelector('.enemy-visual');
 const heroVisual = document.querySelector('.hero-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
@@ -203,7 +204,8 @@ function calculateDamage(actionNumber) {
 }
 
 // ===== TURN CONTROL =====
-const TURN_DURATION = 5000;
+let TURN_DURATION = 5000;
+const ENEMY_TURN_BAR_DURATION = 450;
 // Pausa entre ações para que as animações de um turno terminem antes do próximo
 const ACTION_DELAY = 1000;
 let turnTimeout = null;
@@ -217,9 +219,22 @@ function startTimerBar() {
     turnTimerBar.style.width = '0%';
 }
 
+function updateFastMode() {
+    const isFast = fastBtn.classList.contains('active');
+    TURN_DURATION = isFast ? 2000 : 5000;
+}
+
 function stopTimerBar() {
     turnTimerBar.style.transition = 'none';
     turnTimerBar.style.width = '0%';
+}
+
+function startEnemyTurnBar() {
+    turnTimerBar.style.transition = 'none';
+    turnTimerBar.style.width = '0%';
+    void turnTimerBar.offsetWidth;
+    turnTimerBar.style.transition = `width ${ENEMY_TURN_BAR_DURATION}ms linear`;
+    turnTimerBar.style.width = '100%';
 }
 
 function canAfford(skill) {
@@ -276,6 +291,7 @@ function startTurn() {
         if (game.selectedSkill != null) highlightSelection(game.selectedSkill);
         turnTimeout = setTimeout(executeHeroTurn, TURN_DURATION);
     } else {
+        startEnemyTurnBar();
         // Inimigo age imediatamente, sem contagem de tempo
         enemyTurn();
     }
@@ -507,6 +523,16 @@ restartBtn.addEventListener('click', () => {
     initGame();
 });
 
+fastBtn.addEventListener('click', () => {
+    fastBtn.classList.toggle('active');
+    fastBtn.blur();
+    updateFastMode();
+    if (game.isHeroTurn && !game.isGameOver && !game.isActionLocked) {
+        startTimerBar();
+    }
+});
+
 // ===== START GAME =====
+updateFastMode();
 renderSkillButtons();
 initGame();
