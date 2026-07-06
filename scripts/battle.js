@@ -119,6 +119,7 @@ function initGame() {
     game.isGameOver = false;
     game.defenseActive = false;
     game.gameResult = null;
+    game.isActionLocked = false;
     
     // Remover efeito de dissolução
     const heroSprite = document.querySelector('.hero-sprite');
@@ -177,7 +178,8 @@ function updateActionButtons() {
     actionsGrid.querySelectorAll('.action-btn').forEach(btn => {
         const skill = skills[parseInt(btn.dataset.action, 10)];
         const cost = skill.apChange < 0 ? Math.abs(skill.apChange) : 0;
-        btn.disabled = game.isGameOver || (skill.apChange < 0 && game.heroPA < cost);
+        const canUseSkill = game.isHeroTurn && !game.isGameOver && !game.isActionLocked && !(skill.apChange < 0 && game.heroPA < cost);
+        btn.disabled = !canUseSkill;
     });
 }
 
@@ -237,7 +239,7 @@ function highlightSelection(skillId) {
 // Seleciona a skill do botão clicado; permitido em qualquer turno.
 // Se a skill já estiver selecionada e for o turno do herói, executa imediatamente.
 function selectSkill(skillId) {
-    if (game.isGameOver) return;
+    if (game.isGameOver || !game.isHeroTurn || game.isActionLocked) return;
     const skill = skills[skillId];
     if (!skill || !canAfford(skill)) return;
 
@@ -257,6 +259,11 @@ function selectSkill(skillId) {
 function startTurn() {
     if (game.isGameOver) return;
     if (turnTimeout) clearTimeout(turnTimeout);
+
+    if (game.isHeroTurn) {
+        game.isActionLocked = false;
+    }
+
     updateUI();
 
     if (game.isHeroTurn) {
@@ -286,6 +293,8 @@ function endTurn() {
 function executeHeroTurn() {
     if (game.isGameOver) return;
     clearSelection();
+    game.isActionLocked = true;
+    updateUI();
 
     let skillId = game.selectedSkill;
     let skill = skills[skillId];
@@ -344,6 +353,9 @@ function executeHeroTurn() {
 // ===== ENEMY TURN =====
 function enemyTurn() {
     if (game.isGameOver) return;
+
+    clearSelection();
+    updateActionButtons();
     
     // Animação de charge do inimigo
     const enemySprite = document.querySelector('.enemy-sprite');
@@ -462,8 +474,8 @@ function playSkillAnimation(animKey, targetVisual) {
     const duration = animData.duration || 500;
 
     const rect = targetVisual.getBoundingClientRect();
-    const cx = rect.left + rect.width  / 2 - 37;
-    const cy = rect.top  + rect.height / 2 - 37;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
 
     for (let i = 0; i < count; i++) {
         const delay = i * (duration / count / 2);
