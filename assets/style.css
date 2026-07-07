@@ -170,14 +170,18 @@ body {
 }
 
 @keyframes shake-enemy {
-    0%, 100% { transform: translateX(0px) translateY(0px); }
-    25% { transform: translateX(-3px) translateY(-2px); }
-    50% { transform: translateX(3px) translateY(2px); }
-    75% { transform: translateX(-3px) translateY(-2px); }
+    0%, 100% { transform: translateX(0px) translateY(0px) scale(1); }
+    12% { transform: translateX(-8px) translateY(-4px) scale(1.02); }
+    25% { transform: translateX(8px) translateY(4px) scale(0.98); }
+    37% { transform: translateX(-10px) translateY(-5px) scale(1.03); }
+    50% { transform: translateX(10px) translateY(5px) scale(0.97); }
+    62% { transform: translateX(-8px) translateY(-4px) scale(1.02); }
+    75% { transform: translateX(8px) translateY(4px) scale(0.98); }
+    87% { transform: translateX(-6px) translateY(-3px) scale(1.01); }
 }
 
 .enemy-visual.take-damage {
-    animation: shake-enemy 0.3s ease;
+    animation: shake-enemy 0.35s ease;
 }
 
 /* ===== SEÇÃO DO HERÓI ===== */
