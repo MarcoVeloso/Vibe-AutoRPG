@@ -50,7 +50,7 @@ function renderSkillButtons() {
             effectText = `+${skill.pdChange} PD`;
             effectClass = 'positive';
         } else if (skill.effect < 0) {
-            const totalDmg = Math.abs(skill.effect) * heroData.PF;
+            const totalDmg = Math.abs(skill.effect) * (game.heroPF || heroData.PF);
             effectText = `-${totalDmg} PV`;
             effectClass = 'negative';
         } else if (skill.effect > 0) {
@@ -88,7 +88,7 @@ function updateSkillButtons() {
         if (skill.pdChange > 0) {
             effectElem.textContent = `+${skill.pdChange} PD`;
         } else if (skill.effect < 0) {
-            const totalDmg = Math.abs(skill.effect) * heroData.PF;
+            const totalDmg = Math.abs(skill.effect) * (game.heroPF || heroData.PF);
             effectElem.textContent = `-${totalDmg} PV`;
         } else if (skill.effect > 0) {
             effectElem.textContent = `+${skill.effect} PV`;
@@ -119,6 +119,10 @@ function initGame() {
     // PD é levado entre batalhas; inicializa apenas se nunca definido
     if (game.heroPD === undefined || isNaN(game.heroPD)) {
         game.heroPD = heroData.initialPD;
+    }
+    // PF é levado entre batalhas; inicializa apenas se nunca definido
+    if (game.heroPF === undefined || isNaN(game.heroPF)) {
+        game.heroPF = heroData.PF;
     }
     if (game.heroGold === undefined || isNaN(game.heroGold)) {
         game.heroGold = heroData.gold || 0;
@@ -155,7 +159,7 @@ function initGame() {
     logContent.textContent = `Batalha contra ${currentEnemyData.name}!`;
     
     // Atualizar PF do herói
-    heroPFElem.textContent = `PF: ${heroData.PF}`;
+    heroPFElem.textContent = `PF: ${game.heroPF}`;
     
     // Atualizar valores dos botões de skill
     updateSkillButtons();
@@ -173,6 +177,7 @@ function updateUI() {
     enemyPVElem.textContent = game.enemyPV;
     enemyMaxPVElem.textContent = game.enemyMaxPV;
     heroPDElem.textContent = `PD: ${game.heroPD}`;
+    heroPFElem.textContent = `PF: ${game.heroPF || heroData.PF}`;
     goldDisplay.textContent = `$ ${game.heroGold !== undefined && game.heroGold !== null ? game.heroGold : 0}`;
     stageDisplay.textContent = `${currentStage}`;
     
@@ -334,6 +339,18 @@ function executeHeroTurn() {
 
     game.heroPA = Math.min(game.heroMaxPA, Math.max(0, game.heroPA + skill.apChange));
 
+    // Aplica mudança de PF se a skill alterar esse valor
+    if (skill.pfChange && skill.pfChange !== 0) {
+        game.heroPF = Math.max(1, (game.heroPF || heroData.PF) + skill.pfChange);
+        const sign = skill.pfChange > 0 ? `+${skill.pfChange}` : `${skill.pfChange}`;
+        addLog(`${heroData.name} usou ${skill.name} (${heroData.name} ${sign} PF)`);
+        playSkillAnimation(skill.anim, heroVisual);
+        updateSkillButtons();
+        updateUI();
+        endTurn();
+        return;
+    }
+
     // Acumula PD se a skill aumentar
     if (skill.pdChange > 0) {
         game.heroPD = (game.heroPD || 0) + skill.pdChange;
@@ -345,7 +362,7 @@ function executeHeroTurn() {
     }
 
     if (skill.effect < 0) {
-        const damage = Math.abs(skill.effect) * heroData.PF;
+        const damage = Math.abs(skill.effect) * (game.heroPF || heroData.PF);
         game.enemyPV = Math.max(0, game.enemyPV - damage);
         addLog(`${heroData.name} usou ${skill.name} (${currentEnemyData.name} -${damage} PV)`);
         playSkillAnimation(skill.anim, enemyVisual);
@@ -556,6 +573,8 @@ restartBtn.addEventListener('click', () => {
     game.heroPV = undefined;
     game.heroPA = undefined;
     game.heroGold = undefined;
+    // Resetar PF também
+    game.heroPF = undefined;
     initGame();
 });
 
