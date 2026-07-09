@@ -5,5 +5,6 @@ const HERO_DATA = {
     maxPA: 5,
     initialPD: 0,
     PF: 1,
+    gold: 0,
     skills: [1, 2, 3, 4, 5, 6],
 };

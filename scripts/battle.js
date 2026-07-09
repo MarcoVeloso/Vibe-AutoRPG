@@ -28,6 +28,7 @@ const enemyNameLabel = document.getElementById('enemy-name-label');
 const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
 const heroPDElem = document.getElementById('hero-pd');
+const goldDisplay = document.querySelector('.gold-display');
 const actionsGrid = document.getElementById('actions-grid');
 const turnTimerBar = document.getElementById('turn-timer-bar');
 
@@ -113,6 +114,9 @@ function initGame() {
     if (game.heroPD === undefined || isNaN(game.heroPD)) {
         game.heroPD = heroData.initialPD;
     }
+    if (game.heroGold === undefined || isNaN(game.heroGold)) {
+        game.heroGold = heroData.gold || 0;
+    }
 
     game.enemyPV = currentEnemyData.maxPV;
     game.enemyMaxPV = currentEnemyData.maxPV;
@@ -163,6 +167,7 @@ function updateUI() {
     enemyPVElem.textContent = game.enemyPV;
     enemyMaxPVElem.textContent = game.enemyMaxPV;
     heroPDElem.textContent = `PD: ${game.heroPD}`;
+    goldDisplay.textContent = `$ ${game.heroGold !== undefined && game.heroGold !== null ? game.heroGold : 0}`;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
     const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
@@ -340,6 +345,7 @@ function executeHeroTurn() {
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
+            game.heroGold = (game.heroGold || 0) + (currentEnemyData.gold || 0);
             // Aplicar animação de dissolução ao inimigo
             const enemySpriteDom = document.querySelector('.enemy-sprite');
             enemySpriteDom.classList.add('dissolve');
@@ -520,6 +526,7 @@ restartBtn.addEventListener('click', () => {
     // Resetar estado do herói para novo jogo
     game.heroPV = undefined;
     game.heroPA = undefined;
+    game.heroGold = undefined;
     initGame();
 });
 

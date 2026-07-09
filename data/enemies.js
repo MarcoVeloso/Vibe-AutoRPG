@@ -4,6 +4,7 @@ const ENEMIES_DATA = {
         sprite: '🧟',
         maxPV: 5,
         PF: 1,
+        gold: 1,
         skills: [1, 1, 1, 1, 1],
     },
     2: {
@@ -11,6 +12,7 @@ const ENEMIES_DATA = {
         sprite: '🧟‍♀️',
         maxPV: 8,
         PF: 2,
+        gold: 2,
         skills: [1, 1, 1, 1, 1],
     },
 };
