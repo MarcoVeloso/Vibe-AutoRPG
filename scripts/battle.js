@@ -526,20 +526,24 @@ function playSkillAnimation(animKey, targetVisual) {
 
     for (let i = 0; i < count; i++) {
         const delay = i * (duration / count / 2);
-        const ox = spread ? (Math.random() - 0.5) * spread * 2 : 0;
-        const oy = spread ? (Math.random() - 0.5) * spread * 2 : 0;
 
         const el = document.createElement('div');
         el.className = 'effect-anim';
         el.textContent = animData.sprite;
+        // Allow horizontal randomness but keep motion vertical in animation
+        const ox = spread ? (Math.random() - 0.5) * spread * 2 : 0;
+        const vy = spread ? (Math.random() - 0.5) * spread : 0;
         el.style.left = (cx + ox) + 'px';
-        el.style.top  = (cy + oy) + 'px';
+        el.style.top  = (cy + vy) + 'px';
+        el.style.willChange = 'transform, opacity';
+        el.style.transform = 'translate(-50%, -50%)';
         el.style.animationDelay = delay + 'ms';
-        el.style.animation = `${animData.animation} ${duration}ms ease-out ${delay}ms forwards`;
+        // Use linear easing for smooth, consistent vertical movement
+        el.style.animation = `${animData.animation} ${duration}ms linear ${delay}ms forwards`;
         el.style.opacity = '0';
 
         document.body.appendChild(el);
-        setTimeout(() => { el.remove(); }, duration + delay + 100);
+        setTimeout(() => { el.remove(); }, duration + delay + 120);
     }
 }
 
