@@ -152,8 +152,15 @@ function initGame() {
     
     // Aplicar animação de surgimento
     enemySpriteDom.classList.add('spawn');
+    const enemySectionDom = document.querySelector('.enemy-section');
+    if (enemySectionDom) {
+        enemySectionDom.classList.add('corridor-walk');
+    }
     setTimeout(() => {
         enemySpriteDom.classList.remove('spawn');
+        if (enemySectionDom) {
+            enemySectionDom.classList.remove('corridor-walk');
+        }
     }, 800);
     
     logContent.textContent = `Batalha contra ${currentEnemyData.name}!`;
