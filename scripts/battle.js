@@ -5,7 +5,7 @@ const heroData = HERO_DATA;
 const skills = SKILLS_DATA;
 
 // ===== STAGE CONTROL =====
-let currentStage = 0;
+let currentStage = '1-1';
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 
@@ -29,6 +29,7 @@ const enemySprite = document.querySelector('.enemy-sprite');
 const heroPFElem = document.getElementById('hero-pf');
 const heroPDElem = document.getElementById('hero-pd');
 const goldDisplay = document.querySelector('.gold-display');
+const stageDisplay = document.getElementById('stage-display');
 const actionsGrid = document.getElementById('actions-grid');
 const turnTimerBar = document.getElementById('turn-timer-bar');
 
@@ -99,6 +100,11 @@ function updateSkillButtons() {
 function initGame() {
     // Carregar dados do stage e inimigo atual
     const stage = STAGE_DATA[currentStage];
+    if (!stage) {
+        endGame('victory');
+        return;
+    }
+
     const enemyIndexInStage = currentEnemyIndexInStage;
     const enemyArrayIndex = stage.enemies[enemyIndexInStage];
     currentEnemyData = ENEMIES_DATA[enemyArrayIndex];
@@ -168,6 +174,7 @@ function updateUI() {
     enemyMaxPVElem.textContent = game.enemyMaxPV;
     heroPDElem.textContent = `PD: ${game.heroPD}`;
     goldDisplay.textContent = `$ ${game.heroGold !== undefined && game.heroGold !== null ? game.heroGold : 0}`;
+    stageDisplay.textContent = `${currentStage}`;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
     const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
@@ -438,8 +445,13 @@ function enemyTurn() {
 // ===== END GAME =====
 function loadNextEnemy() {
     const stage = STAGE_DATA[currentStage];
+    if (!stage) {
+        endGame('victory');
+        return;
+    }
+
     currentEnemyIndexInStage++;
-    
+
     if (currentEnemyIndexInStage < stage.enemies.length) {
         // Há mais inimigos neste stage
         addLog(`${currentEnemyData.name} foi derrotado!`);
@@ -448,8 +460,21 @@ function loadNextEnemy() {
             initGame();
         }, 1200);
     } else {
-        // Stage completo
-        endGame('victory');
+        const stageParts = currentStage.split('-');
+        const nextStageNumber = parseInt(stageParts[1], 10) + 1;
+        const nextStageKey = `${stageParts[0]}-${nextStageNumber}`;
+
+        if (STAGE_DATA[nextStageKey]) {
+            currentStage = nextStageKey;
+            currentEnemyIndexInStage = 0;
+            addLog(`${currentEnemyData.name} foi derrotado!`);
+            setTimeout(() => {
+                initGame();
+            }, 1200);
+        } else {
+            // Stage completo
+            endGame('victory');
+        }
     }
 }
 
@@ -521,7 +546,7 @@ function playSkillAnimation(animKey, targetVisual) {
 // ===== EVENT LISTENERS =====
 restartBtn.addEventListener('click', () => {
     restartBtn.blur();
-    currentStage = 0;
+    currentStage = "1-1";
     currentEnemyIndexInStage = 0;
     // Resetar estado do herói para novo jogo
     game.heroPV = undefined;
