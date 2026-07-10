@@ -5,7 +5,7 @@ const heroData = HERO_DATA;
 const skills = SKILLS_DATA;
 
 // ===== STAGE CONTROL =====
-let currentStage = '1-1';
+let currentStage = 'MASMORRA-1';
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 

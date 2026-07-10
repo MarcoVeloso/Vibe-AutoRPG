@@ -162,11 +162,11 @@ body {
 }
 
 .enemy-section.corridor-walk .wall.left {
-    animation: corridor-flow-step 0.5s ease-out forwards;
+    animation: corridor-flow-step 0.7s ease-out forwards;
 }
 
 .enemy-section.corridor-walk .wall.right {
-    animation: corridor-flow-step 0.5s ease-out forwards reverse;
+    animation: corridor-flow-step 0.7s ease-out forwards reverse;
 }
 
 /* Ensure the enemy visuals and labels are above the walls */
