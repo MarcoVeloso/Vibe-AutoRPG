@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe AutoRPG - Batalha em Turnos</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Topo: Controles e Ouro -->
+        <div class="top-panel">
+            <div class="top-controls">
+                <button id="restart-btn" class="restart-btn"><</button>
+                <button id="fast-btn" class="fast-btn">>></button>
+            </div>
+            <div class="stage-display" id="stage-display">STAGE 1</div>
+            <div class="gold-display">$ 3400</div>
+        </div>
+
+        <!-- Inimigo -->
+        <div class="enemy-section">
+            <div class="wall left"></div>
+            <div class="wall right"></div>
+            <div class="enemy-hp-bar">
+                <div class="hp-label" id="enemy-name-label">INIMIGO 1/1</div>
+                <div class="hp-container">
+                    <div class="hp-fill enemy-hp" style="width: 100%"></div>
+                    <div class="hp-text"><span id="enemy-hp">5</span>/<span id="enemy-max-hp">5</span></div>
+                </div>
+            </div>
+            <div class="enemy-visual">
+                <div class="enemy-sprite">🧟</div>
+            </div>
+        </div>
+
+        <!-- Meio: Herói e Barras -->
+        <div class="hero-section">
+            <div class="hero-visual">
+                <div class="hero-sprite">🥷</div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-bar hp-bar">
+                    <div class="bar-container">
+                        <div class="bar-fill hero-hp" style="width: 100%"></div>
+                        <div class="bar-text"><span id="hero-hp">10</span>/<span id="hero-max-hp">10</span></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar ap-bar">
+                    <div class="bar-container">
+                        <div class="bar-fill hero-ap" style="width: 100%"></div>
+                        <div class="bar-text"><span id="hero-ap">5</span>/<span id="hero-max-ap">5</span></div>
+                    </div>
+                </div>
+
+                <div class="hero-info-row">
+                    <span class="hero-info-left" id="hero-pf">PF: 2</span>
+                    <span class="hero-info-center" id="hero-pd">PD: 0</span>
+                    <span class="hero-info-right">PRIMEIRO ATAQUE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log de Ações -->
+        <div class="action-log">
+            <div id="log-content" class="log-text">--- INÍCIO ---</div>
+        </div>
+
+        <!-- Barra de tempo do turno -->
+        <div class="turn-timer">
+            <div class="turn-timer-bar" id="turn-timer-bar"></div>
+        </div>
+
+        <!-- Botões de Ação (gerados dinamicamente) -->
+        <div class="actions-grid" id="actions-grid">
+        </div>
+    </div>
+
+    <script src="../data/hero.js"></script>
+    <script src="../data/skills.js"></script>
+    <script src="../data/enemies.js"></script>
+    <script src="../data/stages.js"></script>
+    <script src="../scripts/battle.js"></script>
+</body>
+</html>
