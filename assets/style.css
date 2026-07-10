@@ -131,13 +131,18 @@ body {
     width: 30%;
     height: 100%;
     background-color: #1d2b3d;
-    background-image: linear-gradient(
-        to right,
-        transparent 24%, rgba(160,200,255,0.18) 24%, rgba(160,200,255,0.18) 25%, transparent 25%,
-        transparent 49%, rgba(160,200,255,0.18) 49%, rgba(160,200,255,0.18) 50%, transparent 50%,
-        transparent 74%, rgba(160,200,255,0.18) 74%, rgba(160,200,255,0.18) 75%, transparent 75%
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(160,200,255,0.2) 0px,
+        rgba(160,200,255,0.2) 2px,
+        transparent 2px,
+        transparent 18px
     );
+    background-position: 0 0;
+    background-repeat: repeat-x;
+    background-size: 160% 100%;
     pointer-events: none;
+    will-change: background-position;
 }
 
 .enemy-section .wall.left {
@@ -152,8 +157,17 @@ body {
     z-index: 1;
 }
 
+@keyframes corridor-flow-step {
+    0% { background-position: 0 0; }
+    100% { background-position: 54px 0; }
+}
+
+.enemy-section.corridor-walk .wall {
+    animation: corridor-flow-step 0.5s ease-out forwards;
+}
+
 /* Ensure the enemy visuals and labels are above the walls */
-.enemy-section > * {
+.enemy-section > *:not(.wall) {
     position: relative;
     z-index: 2;
 }
