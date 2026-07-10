@@ -745,5 +745,44 @@ body {
     text-shadow: 2px 2px #000;
 }
 
+/* ===== STAGE SELECT (moved from screens/stage_select.html) ===== */
+.stage-list { display:flex; flex-direction:column; gap:5px; padding:12px; flex: 1 1 auto; overflow: auto; }
+.stage-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px; border:2px solid #888; background:rgba(10,10,10,0.6); }
+.stage-title { font-size:25px; color:#fff; }
+.stage-actions { display:flex; gap:6px; }
+.stage-actions button { width:48px; height:36px; font-size:18px; }
+
+/* Footer buttons on stage select */
+.stage-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+}
+.stage-footer { margin-top: auto; }
+.footer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 3px solid #888;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    color: #fff;
+    text-decoration: none;
+    font-family: 'Pixel', cursive;
+    font-size: 25px;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px #000 inset;
+}
+.footer-btn .icon { font-size: 22px; }
+.footer-btn:hover { box-shadow: 0 0 10px rgba(170,170,170,0.4), 0 0 0 2px #000 inset; }
+
+.back-link { padding:8px; text-align:center; color:#aaa; font-size:14px; display:block; }
+
+.no-stage { color: #ccc; padding: 12px; text-align: center; }
+
+
 /* ===== RESPONSIVIDADE ===== */
 

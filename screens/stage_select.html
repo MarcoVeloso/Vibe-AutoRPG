@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolher Fase - Vibe AutoRPG</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="top-panel">
+            <div class="stage-display">SELECIONE A FASE</div>
+        </div>
+
+        <div class="stage-list" id="stage-list">
+            <!-- Dynamically populated -->
+        </div>
+
+        <div class="stage-footer">
+            <a class="footer-btn left" href="./setup.html">
+                <span class="icon">🥷</span>
+                <span class="label">NINJA</span>
+            </a>
+
+            <a class="footer-btn right" href="./shop.html">
+                <span class="icon">🏪</span>
+                <span class="label">LOJA</span>
+            </a>
+        </div>
+
+    </div>
+
+    <script src="../data/stages.js"></script>
+    <script>
+        // Build the stage list from STAGE_DATA
+        const list = document.getElementById('stage-list');
+        const stages = Object.keys(STAGE_DATA || {});
+        if (!stages.length) {
+            list.innerHTML = '<div class="no-stage">Nenhuma fase disponível.</div>';
+        } else {
+            stages.forEach(stageKey => {
+                const item = document.createElement('div');
+                item.className = 'stage-item';
+
+                const title = document.createElement('div');
+                title.className = 'stage-title';
+                title.textContent = stageKey;
+
+                const actions = document.createElement('div');
+                actions.className = 'stage-actions';
+
+                // Play button (normal)
+                const playBtn = document.createElement('button');
+                playBtn.title = 'Jogar';
+                playBtn.innerHTML = '▶';
+                playBtn.addEventListener('click', () => {
+                    // Open battle screen directly with stage param
+                    window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
+                });
+
+                // Fast-forward button
+                const fastBtn = document.createElement('button');
+                fastBtn.title = 'Jogar (fast)';
+                fastBtn.innerHTML = '⏩';
+                fastBtn.addEventListener('click', () => {
+                    window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
+                });
+
+                actions.appendChild(playBtn);
+                actions.appendChild(fastBtn);
+
+                item.appendChild(title);
+                item.appendChild(actions);
+                list.appendChild(item);
+            });
+        }
+    </script>
+    
+</body>
+</html>

@@ -9,6 +9,17 @@ let currentStage = 'MASMORRA-1';
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 
+// Allow overriding the default stage via URL query string, e.g. ?stage=MASMORRA-2
+try {
+    const params = new URLSearchParams(window.location.search);
+    const stageParam = params.get('stage');
+    if (stageParam) {
+        currentStage = stageParam;
+    }
+} catch (e) {
+    // ignore in non-browser environments
+}
+
 // ===== DOM ELEMENTS =====
 const heroPVElem = document.getElementById('hero-hp');
 const heroMaxPVElem = document.getElementById('hero-max-hp');
@@ -32,6 +43,19 @@ const goldDisplay = document.querySelector('.gold-display');
 const stageDisplay = document.getElementById('stage-display');
 const actionsGrid = document.getElementById('actions-grid');
 const turnTimerBar = document.getElementById('turn-timer-bar');
+
+// If the URL contains ?fast=1, enable fast mode (toggle fast button and update timing)
+try {
+    const paramsFast = new URLSearchParams(window.location.search);
+    if (paramsFast.get('fast') === '1') {
+        if (fastBtn) {
+            fastBtn.classList.add('active');
+            updateFastMode();
+        }
+    }
+} catch (e) {
+    // ignore
+}
 
 // ===== RENDER SKILL BUTTONS =====
 function renderSkillButtons() {
@@ -574,15 +598,9 @@ function playSkillAnimation(animKey, targetVisual) {
 // ===== EVENT LISTENERS =====
 restartBtn.addEventListener('click', () => {
     restartBtn.blur();
-    currentStage = "1-1";
-    currentEnemyIndexInStage = 0;
-    // Resetar estado do herói para novo jogo
-    game.heroPV = undefined;
-    game.heroPA = undefined;
-    game.heroGold = undefined;
-    // Resetar PF também
-    game.heroPF = undefined;
-    initGame();
+    // Volta para a tela de seleção de fases
+    // battle.html está em screens/, então abrimos a página relativa
+    window.location.href = 'stage_select.html';
 });
 
 fastBtn.addEventListener('click', () => {
