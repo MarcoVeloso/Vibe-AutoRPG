@@ -508,21 +508,9 @@ function loadNextEnemy() {
             initGame();
         }, 1200);
     } else {
-        const stageParts = currentStage.split('-');
-        const nextStageNumber = parseInt(stageParts[1], 10) + 1;
-        const nextStageKey = `${stageParts[0]}-${nextStageNumber}`;
-
-        if (STAGE_DATA[nextStageKey]) {
-            currentStage = nextStageKey;
-            currentEnemyIndexInStage = 0;
-            addLog(`${currentEnemyData.name} foi derrotado!`);
-            setTimeout(() => {
-                initGame();
-            }, 1200);
-        } else {
-            // Stage completo
-            endGame('victory');
-        }
+        // Stage completo: encerra a fase e retorna à seleção
+        addLog(`${currentEnemyData.name} foi derrotado!`);
+        endGame('victory');
     }
 }
 
@@ -544,6 +532,10 @@ function endGame(result) {
     
     updateUI();
     disableAllActions();
+
+    setTimeout(() => {
+        window.location.href = 'stage_select.html';
+    }, 2000);
 }
 
 function disableAllActions() {
