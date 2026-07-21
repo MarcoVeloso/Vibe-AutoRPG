@@ -558,6 +558,11 @@ function endGame(result) {
     disableAllActions();
 
     setTimeout(() => {
+        if (typeof window.navigateWithTransition === 'function') {
+            window.navigateWithTransition('stage_select.html');
+            return;
+        }
+
         window.location.href = 'stage_select.html';
     }, 2000);
 }
@@ -616,6 +621,11 @@ restartBtn.addEventListener('click', () => {
     restartBtn.blur();
     // Volta para a tela de seleção de fases
     // battle.html está em screens/, então abrimos a página relativa
+    if (typeof window.navigateWithTransition === 'function') {
+        window.navigateWithTransition('stage_select.html');
+        return;
+    }
+
     window.location.href = 'stage_select.html';
 });
 

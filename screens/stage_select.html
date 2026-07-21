@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escolher Fase - Vibe AutoRPG</title>
     <link rel="stylesheet" href="../assets/style.css">
+    <script src="../scripts/screen-transition.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -74,8 +75,13 @@
                 playBtn.title = 'Jogar';
                 playBtn.innerHTML = '>';
                 playBtn.addEventListener('click', () => {
-                    // Open battle screen directly with stage param
-                    window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
+                    const url = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
+                    if (typeof window.navigateWithTransition === 'function') {
+                        window.navigateWithTransition(url);
+                        return;
+                    }
+
+                    window.location.href = url;
                 });
 
                 // Fast-forward button
@@ -84,7 +90,13 @@
                 fastBtn.title = 'Jogar (fast)';
                 fastBtn.innerHTML = '>>';
                 fastBtn.addEventListener('click', () => {
-                    window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
+                    const url = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
+                    if (typeof window.navigateWithTransition === 'function') {
+                        window.navigateWithTransition(url);
+                        return;
+                    }
+
+                    window.location.href = url;
                 });
 
                 actions.appendChild(playBtn);

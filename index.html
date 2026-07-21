@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vibe AutoRPG - Batalha em Turnos</title>
     <link rel="stylesheet" href="assets/style.css">
+    <script src="scripts/screen-transition.js"></script>
 </head>
 <body>
     <script>
         // Redirect immediately to the battle screen inside screens/
-        window.location.replace('screens/stage_select.html');
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.navigateWithTransition === 'function') {
+                window.navigateWithTransition('screens/stage_select.html', { replace: true });
+                return;
+            }
+
+            window.location.replace('screens/stage_select.html');
+        });
     </script>
 </body>
 </html>
