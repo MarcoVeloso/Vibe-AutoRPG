@@ -8,30 +8,49 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="top-panel">
-            <div class="stage-display">SELECIONE A FASE</div>
-        </div>
-
-        <div class="stage-list" id="stage-list">
-            <!-- Dynamically populated -->
-        </div>
-
-        <div class="stage-footer">
-            <a class="footer-btn left" href="./setup.html">
+        <div class="top-panel stage-select-top">
+            <a class="footer-btn top-nav left" href="./setup.html">
                 <span class="icon">🥷</span>
                 <span class="label">NINJA</span>
             </a>
 
-            <a class="footer-btn right" href="./shop.html">
+            <div class="hero-gold-display" id="hero-gold-display">$ 0</div>
+
+            <a class="footer-btn top-nav right" href="./shop.html">
                 <span class="icon">🏪</span>
                 <span class="label">LOJA</span>
             </a>
         </div>
 
+        <div class="stage-display">SELECIONE A FASE</div>
+
+        <div class="stage-list" id="stage-list">
+            <!-- Dynamically populated -->
+        </div>
     </div>
 
+    <script src="../data/hero.js"></script>
     <script src="../data/stages.js"></script>
     <script>
+        const heroGoldDisplay = document.getElementById('hero-gold-display');
+
+        function readHeroGold() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('vibeAutorpgHero') || '{}');
+                if (stored && typeof stored.gold === 'number' && !isNaN(stored.gold)) {
+                    return stored.gold;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            return Number(HERO_DATA?.gold || 0);
+        }
+
+        function updateHeroGoldDisplay() {
+            heroGoldDisplay.textContent = `$ ${readHeroGold()}`;
+        }
+
         // Build the stage list from STAGE_DATA
         const list = document.getElementById('stage-list');
         const stages = Object.keys(STAGE_DATA || {});
@@ -51,8 +70,9 @@
 
                 // Play button (normal)
                 const playBtn = document.createElement('button');
+                playBtn.className = 'stage-action-btn';
                 playBtn.title = 'Jogar';
-                playBtn.innerHTML = '▶';
+                playBtn.innerHTML = '>';
                 playBtn.addEventListener('click', () => {
                     // Open battle screen directly with stage param
                     window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
@@ -60,8 +80,9 @@
 
                 // Fast-forward button
                 const fastBtn = document.createElement('button');
+                fastBtn.className = 'stage-action-btn';
                 fastBtn.title = 'Jogar (fast)';
-                fastBtn.innerHTML = '⏩';
+                fastBtn.innerHTML = '>>';
                 fastBtn.addEventListener('click', () => {
                     window.location.href = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
                 });
@@ -74,6 +95,8 @@
                 list.appendChild(item);
             });
         }
+
+        updateHeroGoldDisplay();
     </script>
     
 </body>

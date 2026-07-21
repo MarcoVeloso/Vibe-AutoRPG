@@ -3,6 +3,27 @@ const game = {};
 
 const heroData = HERO_DATA;
 const skills = SKILLS_DATA;
+const HERO_STORAGE_KEY = 'vibeAutorpgHero';
+
+function loadStoredHeroState() {
+    try {
+        const stored = localStorage.getItem(HERO_STORAGE_KEY);
+        if (!stored) return null;
+        return JSON.parse(stored);
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveHeroState() {
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify({ gold: game.heroGold }));
+        }
+    } catch (e) {
+        // ignore
+    }
+}
 
 // ===== STAGE CONTROL =====
 let currentStage = 'MASMORRA-1';
@@ -149,8 +170,10 @@ function initGame() {
         game.heroPF = heroData.PF;
     }
     if (game.heroGold === undefined || isNaN(game.heroGold)) {
-        game.heroGold = heroData.gold || 0;
+        const storedHeroState = loadStoredHeroState();
+        game.heroGold = storedHeroState && storedHeroState.gold !== undefined ? storedHeroState.gold : (heroData.gold || 0);
     }
+    saveHeroState();
 
     game.enemyPV = currentEnemyData.maxPV;
     game.enemyMaxPV = currentEnemyData.maxPV;
@@ -401,6 +424,7 @@ function executeHeroTurn() {
 
         if (game.enemyPV <= 0) {
             game.heroGold = (game.heroGold || 0) + (currentEnemyData.gold || 0);
+            saveHeroState();
             // Aplicar animação de dissolução ao inimigo
             const enemySpriteDom = document.querySelector('.enemy-sprite');
             enemySpriteDom.classList.add('dissolve');
