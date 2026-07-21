@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Pixel';
-    src: url('Pixel.ttf') format('truetype');
+    src: url('Pixel.woff2') format('truetype');
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
