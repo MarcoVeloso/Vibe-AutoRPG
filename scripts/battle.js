@@ -3,39 +3,40 @@ const game = {};
 
 const heroData = HERO_DATA;
 const skills = SKILLS_DATA;
-const HERO_STORAGE_KEY = 'vibeAutorpgHero';
-
-function loadStoredHeroState() {
-    try {
-        const stored = localStorage.getItem(HERO_STORAGE_KEY);
-        if (!stored) return null;
-        return JSON.parse(stored);
-    } catch (e) {
-        return null;
-    }
-}
-
-function saveHeroState() {
-    try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify({ gold: game.heroGold }));
-        }
-    } catch (e) {
-        // ignore
-    }
-}
 
 // ===== STAGE CONTROL =====
 let currentStage = 'MASMORRA-1';
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
+let initialHeroGold = null;
+
+function readNavState() {
+    try {
+        const data = JSON.parse(window.name || '{}');
+        return data && data.vibeAutorpgNav ? data.vibeAutorpgNav : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeNavState(payload) {
+    try {
+        window.name = JSON.stringify({ vibeAutorpgNav: payload });
+    } catch (e) {
+        // ignore
+    }
+}
 
 // Allow overriding the default stage via URL query string, e.g. ?stage=MASMORRA-2
 try {
     const params = new URLSearchParams(window.location.search);
     const stageParam = params.get('stage');
+    const nav = readNavState();
     if (stageParam) {
         currentStage = stageParam;
+    }
+    if (nav && typeof nav.total === 'number' && !isNaN(nav.total)) {
+        initialHeroGold = nav.total;
     }
 } catch (e) {
     // ignore in non-browser environments
@@ -170,8 +171,7 @@ function initGame() {
         game.heroPF = heroData.PF;
     }
     if (game.heroGold === undefined || isNaN(game.heroGold)) {
-        const storedHeroState = loadStoredHeroState();
-        game.heroGold = storedHeroState && storedHeroState.gold !== undefined ? storedHeroState.gold : (heroData.gold || 0);
+        game.heroGold = initialHeroGold !== null ? initialHeroGold : (heroData.gold || 0);
     }
 
     if (game.stageGold === undefined || isNaN(game.stageGold)) {
@@ -546,22 +546,23 @@ function loadNextEnemy() {
 function endGame(result) {
     game.isGameOver = true;
     game.gameResult = result;
+    let nextUrl = 'stage_select.html';
     
     if (result === 'victory') {
         game.heroGold = (game.heroGold || 0) + (game.stageGold || 0);
-        saveHeroState();
-        // Passa dados da vitória para a animação na tela de seleção
-        try {
-            sessionStorage.setItem('vibeAutorpgVictory', JSON.stringify({
-                stage: currentStage,
-                gold: game.stageGold || 0
-            }));
-        } catch (e) { /* ignore */ }
+        writeNavState({
+            total: game.heroGold || 0,
+            stage: currentStage,
+            gold: game.stageGold || 0
+        });
         addLog('VITÓRIA! STAGE COMPLETO!');
         // Animar dissolução do inimigo
         const enemySprite = document.querySelector('.enemy-sprite');
         enemySprite.classList.add('dissolve');
     } else {
+        writeNavState({
+            total: game.heroGold || 0
+        });
         addLog('VOCE FOI DERROTADO.');
         // Animar dissolução do herói
         const heroSprite = document.querySelector('.hero-sprite');
@@ -573,11 +574,11 @@ function endGame(result) {
 
     setTimeout(() => {
         if (typeof window.navigateWithTransition === 'function') {
-            window.navigateWithTransition('stage_select.html');
+            window.navigateWithTransition(nextUrl);
             return;
         }
 
-        window.location.href = 'stage_select.html';
+        window.location.href = nextUrl;
     }, 2000);
 }
 

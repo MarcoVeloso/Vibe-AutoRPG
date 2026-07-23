@@ -35,16 +35,28 @@
     <script>
         const heroGoldDisplay = document.getElementById('hero-gold-display');
 
-        function readHeroGold() {
+        function readNavState() {
             try {
-                const stored = JSON.parse(localStorage.getItem('vibeAutorpgHero') || '{}');
-                if (stored && typeof stored.gold === 'number' && !isNaN(stored.gold)) {
-                    return stored.gold;
-                }
+                const data = JSON.parse(window.name || '{}');
+                return data && data.vibeAutorpgNav ? data.vibeAutorpgNav : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function writeNavState(payload) {
+            try {
+                window.name = JSON.stringify({ vibeAutorpgNav: payload });
             } catch (e) {
                 // ignore
             }
+        }
 
+        const navState = readNavState();
+        const currentTotalGold = navState && typeof navState.total === 'number' ? navState.total : NaN;
+
+        function readHeroGold() {
+            if (!isNaN(currentTotalGold)) return currentTotalGold;
             return Number(HERO_DATA?.gold || 0);
         }
 
@@ -75,6 +87,7 @@
                 playBtn.title = 'Jogar';
                 playBtn.innerHTML = '>';
                 playBtn.addEventListener('click', () => {
+                    writeNavState({ total: readHeroGold() });
                     const url = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
                     if (typeof window.navigateWithTransition === 'function') {
                         window.navigateWithTransition(url);
@@ -90,6 +103,7 @@
                 fastBtn.title = 'Jogar (fast)';
                 fastBtn.innerHTML = '>>';
                 fastBtn.addEventListener('click', () => {
+                    writeNavState({ total: readHeroGold() });
                     const url = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
                     if (typeof window.navigateWithTransition === 'function') {
                         window.navigateWithTransition(url);
@@ -108,40 +122,31 @@
             });
         }
 
-        // --- Animação de gold pós-vitória ---
-        const victoryRaw = sessionStorage.getItem('vibeAutorpgVictory');
-        if (victoryRaw) {
-            try {
-                const v = JSON.parse(victoryRaw);
-                sessionStorage.removeItem('vibeAutorpgVictory');
-                const earned = v.gold || 0;
-                const total  = readHeroGold();
-                const before = total - earned;
+        // --- Animação de gold pós-vitória (window.name) ---
+        const victoryStage = navState && typeof navState.stage === 'string' ? navState.stage : null;
+        const victoryGold = navState && typeof navState.gold === 'number' ? navState.gold : 0;
+        const victoryTotal = !isNaN(currentTotalGold) ? currentTotalGold : readHeroGold();
 
-                // Mostra gold ANTES do prêmio
-                heroGoldDisplay.textContent = `$ ${before}`;
+        if (victoryStage && !isNaN(victoryGold) && victoryGold > 0) {
+            const before = victoryTotal - victoryGold;
+            heroGoldDisplay.textContent = `$ ${before}`;
 
-                if (earned > 0) {
-                    // Acha o elemento do título da fase concluída
-                    let stageElem = null;
-                    document.querySelectorAll('.stage-title').forEach(el => {
-                        if (el.textContent === v.stage) stageElem = el;
-                    });
+            let stageElem = null;
+            document.querySelectorAll('.stage-title').forEach(el => {
+                if (el.textContent === victoryStage) stageElem = el;
+            });
 
-                    if (stageElem) {
-                        setTimeout(() => playGoldVictoryAnimation(earned, stageElem, before), 400);
-                    } else {
-                        heroGoldDisplay.textContent = `$ ${total}`;
-                    }
-                } else {
-                    heroGoldDisplay.textContent = `$ ${total}`;
-                }
-            } catch (e) {
-                updateHeroGoldDisplay();
+            if (stageElem) {
+                setTimeout(() => playGoldVictoryAnimation(victoryGold, stageElem, before), 400);
+            } else {
+                heroGoldDisplay.textContent = `$ ${victoryTotal}`;
             }
         } else {
             updateHeroGoldDisplay();
         }
+
+        // Limpa o estado transitório após consumir os dados desta navegação.
+        writeNavState({ total: readHeroGold() });
 
         function playGoldVictoryAnimation(amount, fromElem, startCount) {
             const fromRect = fromElem.getBoundingClientRect();
