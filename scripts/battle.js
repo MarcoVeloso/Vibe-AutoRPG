@@ -173,7 +173,10 @@ function initGame() {
         const storedHeroState = loadStoredHeroState();
         game.heroGold = storedHeroState && storedHeroState.gold !== undefined ? storedHeroState.gold : (heroData.gold || 0);
     }
-    saveHeroState();
+
+    if (game.stageGold === undefined || isNaN(game.stageGold)) {
+        game.stageGold = 0;
+    }
 
     game.enemyPV = currentEnemyData.maxPV;
     game.enemyMaxPV = currentEnemyData.maxPV;
@@ -232,7 +235,7 @@ function updateUI() {
     enemyMaxPVElem.textContent = game.enemyMaxPV;
     heroPDElem.textContent = `PD: ${game.heroPD}`;
     heroPFElem.textContent = `PF: ${game.heroPF || heroData.PF}`;
-    goldDisplay.textContent = `$ ${game.heroGold !== undefined && game.heroGold !== null ? game.heroGold : 0}`;
+    goldDisplay.textContent = `$ ${game.stageGold !== undefined && game.stageGold !== null ? game.stageGold : 0}`;
     stageDisplay.textContent = `${currentStage}`;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
@@ -423,17 +426,19 @@ function executeHeroTurn() {
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
-            game.heroGold = (game.heroGold || 0) + (currentEnemyData.gold || 0);
-            saveHeroState();
+            const goldReward = currentEnemyData.gold || 0;
+            // Não soma agora — cada $ incrementa ao chegar no destino
             // Aplicar animação de dissolução ao inimigo
             const enemySpriteDom = document.querySelector('.enemy-sprite');
             enemySpriteDom.classList.add('dissolve');
             updateUI();
             if (turnTimeout) clearTimeout(turnTimeout);
             stopTimerBar();
-            setTimeout(() => {
-                loadNextEnemy();
-            }, 300);
+            // Dispara animação de gold logo após o hit (300ms)
+            setTimeout(() => playGoldRewardAnimation(goldReward), 300);
+            // Avança ao próximo inimigo após todas as moedas chegarem
+            const advanceDelay = goldReward > 0 ? 1500 : 300;
+            setTimeout(() => loadNextEnemy(), advanceDelay);
             return;
         }
     } else if (skill.effect > 0) {
@@ -543,6 +548,15 @@ function endGame(result) {
     game.gameResult = result;
     
     if (result === 'victory') {
+        game.heroGold = (game.heroGold || 0) + (game.stageGold || 0);
+        saveHeroState();
+        // Passa dados da vitória para a animação na tela de seleção
+        try {
+            sessionStorage.setItem('vibeAutorpgVictory', JSON.stringify({
+                stage: currentStage,
+                gold: game.stageGold || 0
+            }));
+        } catch (e) { /* ignore */ }
         addLog('VITÓRIA! STAGE COMPLETO!');
         // Animar dissolução do inimigo
         const enemySprite = document.querySelector('.enemy-sprite');
@@ -579,6 +593,58 @@ function playEnemyHitAnimation() {
     setTimeout(() => {
         enemyVisual.classList.remove('take-damage');
     }, 300);
+}
+
+function playGoldRewardAnimation(amount) {
+    if (!amount || !enemyVisual || !goldDisplay) return;
+
+    const enemyRect = enemyVisual.getBoundingClientRect();
+    const goldRect  = goldDisplay.getBoundingClientRect();
+    const startX = enemyRect.left + enemyRect.width  / 2;
+    const startY = enemyRect.top  + enemyRect.height / 2;
+    const dx = (goldRect.left + goldRect.width  / 2) - startX;
+    const dy = (goldRect.top  + goldRect.height / 2) - startY;
+    const staggerStep = amount > 1 ? 300 / (amount - 1) : 0;
+
+    for (let i = 0; i < amount; i++) {
+        const el = document.createElement('span');
+        el.textContent = '$';
+        const ox = (Math.random() - 0.5) * 20;
+        const oy = (Math.random() - 0.5) * 20;
+        el.style.cssText = [
+            'position:fixed',
+            `left:${startX + ox}px`,
+            `top:${startY + oy}px`,
+            'z-index:99999',
+            'pointer-events:none',
+            'font-size:12px',
+            'font-weight:700',
+            'line-height:1',
+            'color:#ffd84d',
+            'text-shadow:0 0 6px #ffb700,0 0 14px #ff8c00',
+            'transform:translate(-50%,-50%)',
+        ].join(';');
+        document.body.appendChild(el);
+
+        const jx = (Math.random() - 0.5) * 20;
+        const jy = (Math.random() - 0.5) * 20;
+        const stagger = i * staggerStep;
+
+        const anim = el.animate([
+            { transform: 'translate(-50%,-50%) scale(1)',   opacity: 0.8 },
+            { transform: `translate(calc(-50% + ${dx + jx}px), calc(-50% + ${dy + jy}px)) scale(1.3)`, opacity: 0.1 }
+        ], {
+            duration: 700,
+            delay: stagger,
+            easing: 'cubic-bezier(0.25,0.46,0.45,0.94)',
+            fill: 'forwards'
+        });
+        anim.onfinish = () => {
+            el.remove();
+            game.stageGold = (game.stageGold || 0) + 1;
+            goldDisplay.textContent = `$ ${game.stageGold}`;
+        };
+    }
 }
 
 function playSkillAnimation(animKey, targetVisual) {
