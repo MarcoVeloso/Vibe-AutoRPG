@@ -233,8 +233,8 @@ function updateUI() {
     heroMaxPAElem.textContent = game.heroMaxPA;
     enemyPVElem.textContent = game.enemyPV;
     enemyMaxPVElem.textContent = game.enemyMaxPV;
-    heroPDElem.textContent = `PD: ${game.heroPD}`;
-    heroPFElem.textContent = `PF: ${game.heroPF || heroData.PF}`;
+    heroPDElem.textContent = `🛡 ${game.heroPD}`;
+    heroPFElem.textContent = `🗡 ${game.heroPF || heroData.PF}`;
     goldDisplay.textContent = `$ ${game.stageGold !== undefined && game.stageGold !== null ? game.stageGold : 0}`;
     stageDisplay.textContent = `${currentStage}`;
     

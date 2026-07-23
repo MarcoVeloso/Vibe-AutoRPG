@@ -12,7 +12,7 @@
         <div class="top-panel stage-select-top">
             <a class="footer-btn top-nav left" href="./setup.html">
                 <span class="icon emoji">🥷</span>
-                <span class="label">NINJA</span>
+                <span class="label">HIRO</span>
             </a>
 
             <div class="hero-gold-display" id="hero-gold-display">$ 0</div>
@@ -85,7 +85,7 @@
                 const playBtn = document.createElement('button');
                 playBtn.className = 'stage-action-btn';
                 playBtn.title = 'Jogar';
-                playBtn.innerHTML = '>';
+                playBtn.innerHTML = '▶';
                 playBtn.addEventListener('click', () => {
                     writeNavState({ total: readHeroGold() });
                     const url = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
@@ -101,7 +101,7 @@
                 const fastBtn = document.createElement('button');
                 fastBtn.className = 'stage-action-btn';
                 fastBtn.title = 'Jogar (fast)';
-                fastBtn.innerHTML = '>>';
+                fastBtn.innerHTML = '▶▶';
                 fastBtn.addEventListener('click', () => {
                     writeNavState({ total: readHeroGold() });
                     const url = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;

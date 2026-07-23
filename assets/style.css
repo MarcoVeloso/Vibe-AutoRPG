@@ -324,7 +324,6 @@ body {
     justify-content: space-between;
     font-size: 13px;
     letter-spacing: 1px;
-    text-transform: uppercase;
 }
 
 .hero-info-left,
@@ -824,7 +823,7 @@ body {
 .stage-action-btn {
     width: 56px;
     height: 40px;
-    font-size: 27px;
+    font-size: 25px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -833,7 +832,6 @@ body {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
     color: #fff;
     font-family: 'Pixel';
-    letter-spacing: 1px;
     border-radius: 6px;
     box-shadow: 0 0 0 2px #000 inset;
     cursor: pointer;
