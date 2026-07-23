@@ -664,7 +664,7 @@ function playSkillAnimation(animKey, targetVisual) {
         const delay = i * (duration / count / 2);
 
         const el = document.createElement('div');
-        el.className = 'effect-anim';
+        el.className = 'effect-anim emoji';
         el.textContent = animData.sprite;
         // Allow horizontal randomness but keep motion vertical in animation
         const ox = spread ? (Math.random() - 0.5) * spread * 2 : 0;
