@@ -5,10 +5,15 @@ const heroData = HERO_DATA;
 const skills = SKILLS_DATA;
 
 // ===== STAGE CONTROL =====
-let currentStage = 'MASMORRA-1';
+let currentStage = Object.keys(STAGE_DATA || {})[0] || null;
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 let initialHeroGold = null;
+
+function getCurrentStageData() {
+    if (currentStage == null) return null;
+    return STAGE_DATA[currentStage] || null;
+}
 
 function readNavState() {
     try {
@@ -32,7 +37,7 @@ try {
     const params = new URLSearchParams(window.location.search);
     const stageParam = params.get('stage');
     const nav = readNavState();
-    if (stageParam) {
+    if (stageParam && STAGE_DATA[stageParam]) {
         currentStage = stageParam;
     }
     if (nav && typeof nav.total === 'number' && !isNaN(nav.total)) {
@@ -145,7 +150,7 @@ function updateSkillButtons() {
 // ===== INICIALIZAÇÃO =====
 function initGame() {
     // Carregar dados do stage e inimigo atual
-    const stage = STAGE_DATA[currentStage];
+    const stage = getCurrentStageData();
     if (!stage) {
         endGame('victory');
         return;
@@ -236,7 +241,8 @@ function updateUI() {
     heroPDElem.textContent = `🛡 ${game.heroPD}`;
     heroPFElem.textContent = `🗡 ${game.heroPF || heroData.PF}`;
     goldDisplay.textContent = `$ ${game.stageGold !== undefined && game.stageGold !== null ? game.stageGold : 0}`;
-    stageDisplay.textContent = `${currentStage}`;
+    const stage = getCurrentStageData();
+    stageDisplay.textContent = stage && stage.name ? stage.name : `${currentStage || ''}`;
     
     const heroPVPercent = (game.heroPV / game.heroMaxPV) * 100;
     const heroPAPercent = (game.heroPA / game.heroMaxPA) * 100;
@@ -521,7 +527,7 @@ function enemyTurn() {
 
 // ===== END GAME =====
 function loadNextEnemy() {
-    const stage = STAGE_DATA[currentStage];
+    const stage = getCurrentStageData();
     if (!stage) {
         endGame('victory');
         return;

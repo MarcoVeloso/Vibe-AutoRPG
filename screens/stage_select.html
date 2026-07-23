@@ -66,17 +66,18 @@
 
         // Build the stage list from STAGE_DATA
         const list = document.getElementById('stage-list');
-        const stages = Object.keys(STAGE_DATA || {});
+        const stages = Object.entries(STAGE_DATA || {});
         if (!stages.length) {
             list.innerHTML = '<div class="no-stage">Nenhuma fase disponível.</div>';
         } else {
-            stages.forEach(stageKey => {
+            stages.forEach(([stageId, stageData]) => {
                 const item = document.createElement('div');
                 item.className = 'stage-item';
+                item.dataset.stageId = stageId;
 
                 const title = document.createElement('div');
                 title.className = 'stage-title';
-                title.textContent = stageKey;
+                title.textContent = stageData?.name || stageId;
 
                 const actions = document.createElement('div');
                 actions.className = 'stage-actions';
@@ -88,7 +89,7 @@
                 playBtn.innerHTML = '▶';
                 playBtn.addEventListener('click', () => {
                     writeNavState({ total: readHeroGold() });
-                    const url = `./battle.html?stage=${encodeURIComponent(stageKey)}`;
+                    const url = `./battle.html?stage=${encodeURIComponent(stageId)}`;
                     if (typeof window.navigateWithTransition === 'function') {
                         window.navigateWithTransition(url);
                         return;
@@ -104,7 +105,7 @@
                 fastBtn.innerHTML = '▶▶';
                 fastBtn.addEventListener('click', () => {
                     writeNavState({ total: readHeroGold() });
-                    const url = `./battle.html?stage=${encodeURIComponent(stageKey)}&fast=1`;
+                    const url = `./battle.html?stage=${encodeURIComponent(stageId)}&fast=1`;
                     if (typeof window.navigateWithTransition === 'function') {
                         window.navigateWithTransition(url);
                         return;
@@ -132,8 +133,10 @@
             heroGoldDisplay.textContent = `$ ${before}`;
 
             let stageElem = null;
-            document.querySelectorAll('.stage-title').forEach(el => {
-                if (el.textContent === victoryStage) stageElem = el;
+            document.querySelectorAll('.stage-item').forEach(el => {
+                if (el.dataset.stageId === String(victoryStage)) {
+                    stageElem = el.querySelector('.stage-title');
+                }
             });
 
             if (stageElem) {
