@@ -118,19 +118,22 @@ function renderSkillButtons() {
         if (!skill) return;
 
         // Calcular custo/efeito para exibição
-        const apCost = skill.apChange !== 0 ? `${skill.apChange > 0 ? '+' : ''}${skill.apChange} PA` : null;
+        const apCost = skill.apChange !== 0 ? `${skill.apChange > 0 ? '+' : ''}${skill.apChange} ★` : null;
 
         let effectText = null;
         let effectClass = 'neutral';
         if (skill.pdChange > 0) {
-            effectText = `+${skill.pdChange} PD`;
-            effectClass = 'positive';
+            effectText = `+${skill.pdChange} 🛡`;
+            effectClass = 'neutral';
+        } else if (skill.pfChange !== 0) {
+            effectText = `${skill.pfChange > 0 ? '+' : ''}${skill.pfChange} 🗡`;
+            effectClass = 'neutral';
         } else if (skill.effect < 0) {
             const totalDmg = Math.abs(skill.effect) * (game.heroPF || heroData.PF);
-            effectText = `-${totalDmg} PV`;
+            effectText = `-${totalDmg} ❤`;
             effectClass = 'negative';
         } else if (skill.effect > 0) {
-            effectText = `+${skill.effect} PV`;
+            effectText = `+${skill.effect} ❤`;
             effectClass = 'positive';
         }
 
@@ -162,12 +165,14 @@ function updateSkillButtons() {
         const effectElem = btn.querySelector('.btn-effect');
 
         if (skill.pdChange > 0) {
-            effectElem.textContent = `+${skill.pdChange} PD`;
+            effectElem.textContent = `+${skill.pdChange} 🛡`;
+        } else if (skill.pfChange !== 0) {
+            effectElem.textContent = `${skill.pfChange > 0 ? '+' : ''}${skill.pfChange} 🗡`;
         } else if (skill.effect < 0) {
             const totalDmg = Math.abs(skill.effect) * (game.heroPF || heroData.PF);
-            effectElem.textContent = `-${totalDmg} PV`;
+            effectElem.textContent = `-${totalDmg} ❤`;
         } else if (skill.effect > 0) {
-            effectElem.textContent = `+${skill.effect} PV`;
+            effectElem.textContent = `+${skill.effect} ❤`;
         }
     });
 }
