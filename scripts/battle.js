@@ -10,6 +10,8 @@ let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 let initialHeroGold = null;
 let isHardMode = false;
+let currentMaxStage = Number(HERO_DATA?.maxStage || 0);
+let completedStages = {};
 
 function getCurrentStageData() {
     if (currentStage == null) return null;
@@ -43,6 +45,12 @@ try {
     }
     if (nav && typeof nav.total === 'number' && !isNaN(nav.total)) {
         initialHeroGold = nav.total;
+    }
+    if (nav && typeof nav.maxStage === 'number' && !isNaN(nav.maxStage)) {
+        currentMaxStage = nav.maxStage;
+    }
+    if (nav && nav.completedStages && typeof nav.completedStages === 'object') {
+        completedStages = nav.completedStages;
     }
 } catch (e) {
     // ignore in non-browser environments
@@ -574,14 +582,22 @@ function endGame(result) {
     game.gameResult = result;
     let nextUrl = 'stage_select.html';
     const isFastEnabled = !!(fastBtn && fastBtn.classList.contains('active'));
+    const stageKey = String(currentStage);
+    const wasCompleted = !!completedStages[stageKey];
     
     if (result === 'victory') {
+        if (!wasCompleted) {
+            completedStages[stageKey] = true;
+            currentMaxStage += 1;
+        }
         game.heroGold = (game.heroGold || 0) + (game.stageGold || 0);
         writeNavState({
             total: game.heroGold || 0,
             stage: currentStage,
             gold: game.stageGold || 0,
-            fast: isFastEnabled
+            fast: isFastEnabled,
+            maxStage: currentMaxStage,
+            completedStages
         });
         addLog('VITÓRIA! STAGE COMPLETO!');
         // Animar dissolução do inimigo
@@ -590,7 +606,9 @@ function endGame(result) {
     } else {
         writeNavState({
             total: game.heroGold || 0,
-            fast: isFastEnabled
+            fast: isFastEnabled,
+            maxStage: currentMaxStage,
+            completedStages
         });
         addLog('VOCE FOI DERROTADO.');
         // Animar dissolução do herói

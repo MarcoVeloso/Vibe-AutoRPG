@@ -6,5 +6,6 @@ const HERO_DATA = {
     initialPD: 0,
     PF: 1,
     gold: 0,
+    maxStage: 1,
     skills: [1, 2, 3, 4, 5, 6],
 };

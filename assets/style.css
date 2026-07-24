@@ -43,7 +43,7 @@ a {
     display: flex;
     flex-direction: column;
     padding: 8px;
-    gap: 15px;
+    gap: 10px;
     position: relative;
     overflow: hidden;
 }
@@ -848,9 +848,17 @@ a {
     border: 1px solid #888;
     background: rgba(10,10,10,0.6);
 }
+.stage-item.disabled {
+    opacity: 0.55;
+    border-color: #555;
+    background: rgba(10, 10, 10, 0.35);
+}
 .stage-title {
     font-size: 16px;
     color: #fff;
+}
+.stage-item.disabled .stage-title {
+    color: #999;
 }
 .stage-actions {
     display: flex;
@@ -877,6 +885,12 @@ a {
 .stage-action-btn:active {
     box-shadow: 0 0 0 2px #000 inset, inset 2px 2px 0px rgba(0, 0, 0, 0.5);
     transform: scale(0.98);
+}
+.stage-action-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(1);
+    box-shadow: 0 0 0 2px #000 inset;
 }
 
 /* Footer buttons on stage select */
@@ -925,7 +939,7 @@ a {
     white-space: nowrap;
     align-self: flex-end;
     margin-right: 8px;
-    margin-bottom: -20px;
+    margin-bottom: -15px;
 }
 .footer-btn {
     display: inline-flex;

@@ -58,6 +58,12 @@
 
         const navState = readNavState();
         const currentTotalGold = navState && typeof navState.total === 'number' ? navState.total : NaN;
+        const currentMaxStage = navState && typeof navState.maxStage === 'number'
+            ? navState.maxStage
+            : Number(HERO_DATA?.maxStage || 0);
+        const currentCompletedStages = navState && navState.completedStages && typeof navState.completedStages === 'object'
+            ? navState.completedStages
+            : {};
 
         if (stageFastToggle && navState && navState.fast === true) {
             stageFastToggle.classList.add('active');
@@ -71,7 +77,12 @@
             stageFastToggle.addEventListener('click', () => {
                 stageFastToggle.classList.toggle('active');
                 stageFastToggle.blur();
-                writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
+                writeNavState({
+                    total: readHeroGold(),
+                    fast: isFastModeEnabled(),
+                    maxStage: currentMaxStage,
+                    completedStages: currentCompletedStages
+                });
             });
         }
 
@@ -84,16 +95,35 @@
             heroGoldDisplay.textContent = `$ ${readHeroGold()}`;
         }
 
+        function getStageLevel(stageId, stageData, fallbackLevel) {
+            const idLevel = Number(stageId);
+            if (!isNaN(idLevel) && idLevel > 0) return idLevel;
+
+            const nameMatch = String(stageData?.name || '').match(/(\d+)/);
+            if (nameMatch) return Number(nameMatch[1]);
+
+            return fallbackLevel;
+        }
+
         // Build the stage list from STAGE_DATA
         const list = document.getElementById('stage-list');
         const stages = Object.entries(STAGE_DATA || {});
         if (!stages.length) {
             list.innerHTML = '<div class="no-stage">Nenhuma fase disponível.</div>';
         } else {
-            stages.forEach(([stageId, stageData]) => {
+            const maxStage = Number(currentMaxStage || 0);
+
+            stages.forEach(([stageId, stageData], index) => {
                 const item = document.createElement('div');
                 item.className = 'stage-item';
                 item.dataset.stageId = stageId;
+
+                const stageLevel = getStageLevel(stageId, stageData, index + 1);
+                const isUnlocked = stageLevel <= maxStage;
+                const isHardUnlocked = stageLevel < maxStage;
+                if (!isUnlocked) {
+                    item.classList.add('disabled');
+                }
 
                 const title = document.createElement('div');
                 title.className = 'stage-title';
@@ -103,7 +133,12 @@
                 actions.className = 'stage-actions';
 
                 function openBattle(isHardMode) {
-                    writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
+                    writeNavState({
+                        total: readHeroGold(),
+                        fast: isFastModeEnabled(),
+                        maxStage: currentMaxStage,
+                        completedStages: currentCompletedStages
+                    });
                     const params = [
                         `stage=${encodeURIComponent(stageId)}`,
                         isFastModeEnabled() ? 'fast=1' : null,
@@ -123,7 +158,9 @@
                 playBtn.className = 'stage-action-btn';
                 playBtn.title = 'Jogar';
                 playBtn.innerHTML = '▶';
+                playBtn.disabled = !isUnlocked;
                 playBtn.addEventListener('click', () => {
+                    if (!isUnlocked) return;
                     openBattle(false);
                 });
 
@@ -131,7 +168,9 @@
                 hardBtn.className = 'stage-action-btn';
                 hardBtn.title = 'Jogar no modo caveira';
                 hardBtn.innerHTML = '☠';
+                hardBtn.disabled = !isHardUnlocked;
                 hardBtn.addEventListener('click', () => {
+                    if (!isHardUnlocked) return;
                     openBattle(true);
                 });
 
@@ -170,7 +209,12 @@
         }
 
         // Limpa o estado transitório após consumir os dados desta navegação.
-        writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
+        writeNavState({
+            total: readHeroGold(),
+            fast: isFastModeEnabled(),
+            maxStage: currentMaxStage,
+            completedStages: currentCompletedStages
+        });
 
         function playGoldVictoryAnimation(amount, fromElem, startCount) {
             const fromRect = fromElem.getBoundingClientRect();
