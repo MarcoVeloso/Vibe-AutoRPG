@@ -473,10 +473,13 @@ function executeHeroTurn() {
             if (turnTimeout) clearTimeout(turnTimeout);
             stopTimerBar();
             // Dispara animação de gold logo após o hit (300ms)
-            setTimeout(() => playGoldRewardAnimation(goldReward), 300);
-            // Avança ao próximo inimigo após todas as moedas chegarem
-            const advanceDelay = goldReward > 0 ? 1500 : 300;
-            setTimeout(() => loadNextEnemy(), advanceDelay);
+            if (goldReward > 0) {
+                setTimeout(() => {
+                    playGoldRewardAnimation(goldReward, loadNextEnemy);
+                }, 300);
+            } else {
+                setTimeout(() => loadNextEnemy(), 300);
+            }
             return;
         }
     } else if (skill.effect > 0) {
@@ -543,6 +546,8 @@ function enemyTurn() {
     // Animação de tremor do herói quando sofre dano
     const heroSprite = document.querySelector('.hero-sprite');
     heroSprite.classList.add('take-damage');
+    // Sincroniza o deplete da barra de PV com o início do hit no herói.
+    updateUI();
     setTimeout(() => {
         heroSprite.classList.remove('take-damage');
     }, 500);
@@ -648,8 +653,14 @@ function playEnemyHitAnimation() {
     }, 300);
 }
 
-function playGoldRewardAnimation(amount) {
-    if (!amount || !enemyVisual || !goldDisplay) return;
+function playGoldRewardAnimation(amount, onComplete) {
+    if (!amount || !enemyVisual || !goldDisplay) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
+    }
+
+    const MAX_GOLD_ANIM_MS = 1000;
+    const COIN_DURATION_MS = 700;
 
     const enemyRect = enemyVisual.getBoundingClientRect();
     const goldRect  = goldDisplay.getBoundingClientRect();
@@ -657,7 +668,18 @@ function playGoldRewardAnimation(amount) {
     const startY = enemyRect.top  + enemyRect.height / 2;
     const dx = (goldRect.left + goldRect.width  / 2) - startX;
     const dy = (goldRect.top  + goldRect.height / 2) - startY;
-    const staggerStep = amount > 1 ? 300 / (amount - 1) : 0;
+    const maxStaggerWindow = Math.max(0, MAX_GOLD_ANIM_MS - COIN_DURATION_MS);
+    const staggerStep = amount > 1 ? maxStaggerWindow / (amount - 1) : 0;
+    let finishedCount = 0;
+    let isDone = false;
+
+    const finish = () => {
+        if (isDone) return;
+        isDone = true;
+        if (typeof onComplete === 'function') onComplete();
+    };
+
+    const maxDurationTimeout = setTimeout(finish, MAX_GOLD_ANIM_MS);
 
     for (let i = 0; i < amount; i++) {
         const el = document.createElement('span');
@@ -687,7 +709,7 @@ function playGoldRewardAnimation(amount) {
             { transform: 'translate(-50%,-50%) scale(1)',   opacity: 0.8 },
             { transform: `translate(calc(-50% + ${dx + jx}px), calc(-50% + ${dy + jy}px)) scale(1.3)`, opacity: 0.1 }
         ], {
-            duration: 700,
+            duration: COIN_DURATION_MS,
             delay: stagger,
             easing: 'cubic-bezier(0.25,0.46,0.45,0.94)',
             fill: 'forwards'
@@ -696,6 +718,11 @@ function playGoldRewardAnimation(amount) {
             el.remove();
             game.stageGold = (game.stageGold || 0) + 1;
             goldDisplay.textContent = `$ ${game.stageGold}`;
+            finishedCount++;
+            if (finishedCount >= amount) {
+                clearTimeout(maxDurationTimeout);
+                finish();
+            }
         };
     }
 }
