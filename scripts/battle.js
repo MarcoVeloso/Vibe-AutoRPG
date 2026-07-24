@@ -9,6 +9,7 @@ let currentStage = Object.keys(STAGE_DATA || {})[0] || null;
 let currentEnemyIndexInStage = 0;
 let currentEnemyData = null;
 let initialHeroGold = null;
+let isHardMode = false;
 
 function getCurrentStageData() {
     if (currentStage == null) return null;
@@ -60,6 +61,7 @@ const heroPABar = document.querySelector('.hero-ap');
 const enemyPVBar = document.querySelector('.enemy-hp');
 const restartBtn = document.getElementById('restart-btn');
 const fastBtn = document.getElementById('fast-btn');
+const hardIndicator = document.getElementById('hard-indicator');
 const enemyVisual = document.querySelector('.enemy-visual');
 const heroVisual = document.querySelector('.hero-visual');
 const enemyNameLabel = document.getElementById('enemy-name-label');
@@ -71,15 +73,30 @@ const stageDisplay = document.getElementById('stage-display');
 const actionsGrid = document.getElementById('actions-grid');
 const turnTimerBar = document.getElementById('turn-timer-bar');
 
-// If the URL contains ?fast=1, enable fast mode (toggle fast button and update timing)
+if (fastBtn) {
+    fastBtn.style.display = 'none';
+}
+if (hardIndicator) {
+    hardIndicator.style.display = 'none';
+}
+
+// Read mode params from URL and show indicators only when enabled.
 try {
-    const paramsFast = new URLSearchParams(window.location.search);
-    if (paramsFast.get('fast') === '1') {
+    const modeParams = new URLSearchParams(window.location.search);
+    if (modeParams.get('fast') === '1') {
         if (fastBtn) {
             fastBtn.classList.add('active');
-            updateFastMode();
+            fastBtn.style.display = '';
         }
     }
+    if (modeParams.get('hard') === '1') {
+        isHardMode = true;
+        if (hardIndicator) {
+            hardIndicator.classList.add('active');
+            hardIndicator.style.display = '';
+        }
+    }
+    updateFastMode();
 } catch (e) {
     // ignore
 }
@@ -183,8 +200,9 @@ function initGame() {
         game.stageGold = 0;
     }
 
-    game.enemyPV = currentEnemyData.maxPV;
-    game.enemyMaxPV = currentEnemyData.maxPV;
+    const enemyHp = isHardMode ? (currentEnemyData.maxPV || 0) * 2 : (currentEnemyData.maxPV || 0);
+    game.enemyPV = enemyHp;
+    game.enemyMaxPV = enemyHp;
     game.isHeroTurn = true;
     game.isGameOver = false;
     game.defenseActive = false;
@@ -432,7 +450,8 @@ function executeHeroTurn() {
         playEnemyHitAnimation();
 
         if (game.enemyPV <= 0) {
-            const goldReward = currentEnemyData.gold || 0;
+            const baseGoldReward = currentEnemyData.gold || 0;
+            const goldReward = isHardMode ? baseGoldReward * 2 : baseGoldReward;
             // Não soma agora — cada $ incrementa ao chegar no destino
             // Aplicar animação de dissolução ao inimigo
             const enemySpriteDom = document.querySelector('.enemy-sprite');
@@ -491,7 +510,8 @@ function enemyTurn() {
     const skill = SKILLS_DATA[skillDataIndex];
     
     // DANO FINAL = EFEITO - PD
-    const rawDamage = Math.abs(skill.effect) * currentEnemyData.PF;
+    const enemyPF = isHardMode ? (currentEnemyData.PF || 0) * 2 : (currentEnemyData.PF || 0);
+    const rawDamage = Math.abs(skill.effect) * enemyPF;
     const pd = Math.max(0, game.heroPD || 0);
     const absorbed = Math.min(pd, rawDamage);
     game.heroPD = pd - absorbed;
@@ -553,13 +573,15 @@ function endGame(result) {
     game.isGameOver = true;
     game.gameResult = result;
     let nextUrl = 'stage_select.html';
+    const isFastEnabled = !!(fastBtn && fastBtn.classList.contains('active'));
     
     if (result === 'victory') {
         game.heroGold = (game.heroGold || 0) + (game.stageGold || 0);
         writeNavState({
             total: game.heroGold || 0,
             stage: currentStage,
-            gold: game.stageGold || 0
+            gold: game.stageGold || 0,
+            fast: isFastEnabled
         });
         addLog('VITÓRIA! STAGE COMPLETO!');
         // Animar dissolução do inimigo
@@ -567,7 +589,8 @@ function endGame(result) {
         enemySprite.classList.add('dissolve');
     } else {
         writeNavState({
-            total: game.heroGold || 0
+            total: game.heroGold || 0,
+            fast: isFastEnabled
         });
         addLog('VOCE FOI DERROTADO.');
         // Animar dissolução do herói
@@ -700,15 +723,6 @@ restartBtn.addEventListener('click', () => {
     }
 
     window.location.href = 'stage_select.html';
-});
-
-fastBtn.addEventListener('click', () => {
-    fastBtn.classList.toggle('active');
-    fastBtn.blur();
-    updateFastMode();
-    if (game.isHeroTurn && !game.isGameOver && !game.isActionLocked) {
-        startTimerBar();
-    }
 });
 
 // ===== START GAME =====

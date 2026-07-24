@@ -23,7 +23,10 @@
             </a>
         </div>
 
-        <div class="stage-display">SELECIONE A FASE</div>
+        <div class="stage-display stage-select-display">
+            <span class="stage-display-title">SELECIONE A FASE</span>
+            <button id="stage-fast-toggle" class="fast-btn stage-fast-toggle" type="button">▶▶Turno rápido</button>
+        </div>
 
         <div class="stage-list" id="stage-list">
             <!-- Dynamically populated -->
@@ -34,6 +37,7 @@
     <script src="../data/stages.js"></script>
     <script>
         const heroGoldDisplay = document.getElementById('hero-gold-display');
+        const stageFastToggle = document.getElementById('stage-fast-toggle');
 
         function readNavState() {
             try {
@@ -54,6 +58,22 @@
 
         const navState = readNavState();
         const currentTotalGold = navState && typeof navState.total === 'number' ? navState.total : NaN;
+
+        if (stageFastToggle && navState && navState.fast === true) {
+            stageFastToggle.classList.add('active');
+        }
+
+        function isFastModeEnabled() {
+            return !!(stageFastToggle && stageFastToggle.classList.contains('active'));
+        }
+
+        if (stageFastToggle) {
+            stageFastToggle.addEventListener('click', () => {
+                stageFastToggle.classList.toggle('active');
+                stageFastToggle.blur();
+                writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
+            });
+        }
 
         function readHeroGold() {
             if (!isNaN(currentTotalGold)) return currentTotalGold;
@@ -82,40 +102,41 @@
                 const actions = document.createElement('div');
                 actions.className = 'stage-actions';
 
+                function openBattle(isHardMode) {
+                    writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
+                    const params = [
+                        `stage=${encodeURIComponent(stageId)}`,
+                        isFastModeEnabled() ? 'fast=1' : null,
+                        isHardMode ? 'hard=1' : null
+                    ].filter(Boolean).join('&');
+                    const url = `./battle.html?${params}`;
+                    if (typeof window.navigateWithTransition === 'function') {
+                        window.navigateWithTransition(url);
+                        return;
+                    }
+
+                    window.location.href = url;
+                }
+
                 // Play button (normal)
                 const playBtn = document.createElement('button');
                 playBtn.className = 'stage-action-btn';
                 playBtn.title = 'Jogar';
                 playBtn.innerHTML = '▶';
                 playBtn.addEventListener('click', () => {
-                    writeNavState({ total: readHeroGold() });
-                    const url = `./battle.html?stage=${encodeURIComponent(stageId)}`;
-                    if (typeof window.navigateWithTransition === 'function') {
-                        window.navigateWithTransition(url);
-                        return;
-                    }
-
-                    window.location.href = url;
+                    openBattle(false);
                 });
 
-                // Fast-forward button
-                const fastBtn = document.createElement('button');
-                fastBtn.className = 'stage-action-btn';
-                fastBtn.title = 'Jogar (fast)';
-                fastBtn.innerHTML = '▶▶';
-                fastBtn.addEventListener('click', () => {
-                    writeNavState({ total: readHeroGold() });
-                    const url = `./battle.html?stage=${encodeURIComponent(stageId)}&fast=1`;
-                    if (typeof window.navigateWithTransition === 'function') {
-                        window.navigateWithTransition(url);
-                        return;
-                    }
-
-                    window.location.href = url;
+                const hardBtn = document.createElement('button');
+                hardBtn.className = 'stage-action-btn';
+                hardBtn.title = 'Jogar no modo caveira';
+                hardBtn.innerHTML = '☠';
+                hardBtn.addEventListener('click', () => {
+                    openBattle(true);
                 });
 
                 actions.appendChild(playBtn);
-                actions.appendChild(fastBtn);
+                actions.appendChild(hardBtn);
 
                 item.appendChild(title);
                 item.appendChild(actions);
@@ -149,7 +170,7 @@
         }
 
         // Limpa o estado transitório após consumir os dados desta navegação.
-        writeNavState({ total: readHeroGold() });
+        writeNavState({ total: readHeroGold(), fast: isFastModeEnabled() });
 
         function playGoldVictoryAnimation(amount, fromElem, startCount) {
             const fromRect = fromElem.getBoundingClientRect();
